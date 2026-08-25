@@ -29,6 +29,12 @@ documented with reproduction steps in Appendix B of the assessment document.
 
 ## Running the tests
 
+> **On Windows PowerShell**, run the lines in each block one at a time. Windows
+> PowerShell 5.1 has no `&&` operator, so joining them into a single line fails with
+> *"El token '&&' no es un separador de instrucciones válido"* / *"'&&' is not a valid
+> statement separator"*. Use `;` to chain, or `; if ($?) { ... }` to stop on the first
+> failure. Git Bash and PowerShell 7+ accept `&&` as written.
+
 ### Web (Playwright)
 
 ```bash
@@ -41,7 +47,17 @@ npm run test:headed         # watch it run
 npm run report              # open the HTML report
 ```
 
-Override the target environment with `BASE_URL=https://staging.example.com npm test`.
+Override the target environment with an environment variable:
+
+```bash
+BASE_URL=https://staging.example.com npm test        # bash
+```
+
+```powershell
+$env:BASE_URL='https://staging.example.com'; npm test  # PowerShell
+```
+
+The `VAR=value command` prefix is bash-only — PowerShell has no inline env-var syntax.
 
 #### Cross-browser runs
 
