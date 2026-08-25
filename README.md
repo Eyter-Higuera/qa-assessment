@@ -87,6 +87,14 @@ mvn test -Dtest=SmokeTest           # @smoke only
 mvn test -Dkarate.env=staging       # point at another environment
 ```
 
+On Windows PowerShell, quote any `-D` containing a dot — PowerShell ends a parameter
+name at the first `.`, so `-Dkarate.env=staging` arrives at Maven split in two and
+fails with *"Unknown lifecycle phase '.env=staging'"*:
+
+```powershell
+mvn test '-Dkarate.env=staging'
+```
+
 Reports land in `karate/target/karate-reports/karate-summary.html`.
 
 ## Repository layout

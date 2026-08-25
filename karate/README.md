@@ -31,6 +31,18 @@ mvn test -Dkarate.options="--tags @security"     # one tag
 mvn test -Dkarate.env=staging                    # another environment
 ```
 
+**On Windows PowerShell, quote any `-D` that contains a dot.** PowerShell ends a
+parameter name at the first `.`, so `-Dkarate.env=staging` reaches Maven as two
+arguments and it fails with *"Unknown lifecycle phase '.env=staging'"*. Wrap the
+whole token in quotes:
+
+```powershell
+mvn test '-Dkarate.env=staging'
+mvn test '-Dkarate.options=--tags @security'
+```
+
+`-Dtest=SmokeTest` has no dot and needs no quoting.
+
 ## Notable choices
 
 **Every scenario owns its data.** `common/create-user.feature` provisions a throw-away
