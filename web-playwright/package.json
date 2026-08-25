@@ -1,0 +1,19 @@
+{
+  "name": "bookstore-web-automation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright UI automation for the demoqa.com Book Store application",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:e2e": "playwright test --grep @e2e",
+    "report": "playwright show-report",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,21 @@
+# Node / Playwright
+node_modules/
+web-playwright/test-results/
+web-playwright/playwright-report/
+web-playwright/blob-report/
+web-playwright/.env
+
+# Java / Karate
+target/
+*.log
+.classpath
+.project
+.settings/
+
+# Tooling
+karate.jar
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
