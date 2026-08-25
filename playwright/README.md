@@ -14,11 +14,19 @@ tests/         specs + fixtures
 | `@e2e` | the full collection journey | every PR |
 | `@regression` | secondary paths (cancel delete, …) | nightly |
 
+The `npm` scripts all pin `--project=chromium`, which is the PR gate and the only
+browser the documented setup installs. Firefox and WebKit are opt-in.
+
 ```bash
-npx playwright test --grep @smoke
+npm run test:smoke                         # @smoke, chromium
+npm run test:cross-browser                 # firefox + webkit, opt-in
 npx playwright test --project=firefox      # requires: npx playwright install firefox
 npx playwright test --debug                # step through with the inspector
 ```
+
+Note that a bare `npx playwright test` runs *all three* projects, because all three
+are declared in `playwright.config.ts` so that `--project=firefox` works. Use the
+`npm` scripts to get the chromium-only gate.
 
 ## Notable choices
 
@@ -32,9 +40,14 @@ different buttons and `id="addNewRecordButton"` for two, so ids alone are ambigu
 (see Appendix B of `Senior_QA_Engineer_Assessment.md`). Buttons are addressed by role + accessible name, which is
 both unambiguous and closer to how a person uses the page.
 
-**Ads are stripped after navigation.** demoqa serves third-party ad frames that float
-over the page and swallow clicks. `BasePage.suppressAds()` removes them — the
-difference between a suite that fails one run in five and one that doesn't.
+**Ads are blocked at the network layer, then swept from the DOM.** demoqa serves
+third-party ad frames that float over the page and swallow clicks.
+`BasePage.blockAds()` aborts those requests before they load and
+`BasePage.suppressAds()` removes anything that still landed. The network block is
+the one that matters: the same requests also delay `domcontentloaded`, so blocking
+them prevents navigation timeouts as well as stolen clicks. A DOM sweep alone is not
+enough, because demoqa injects frames asynchronously *after* the sweep has run and
+the reflow stops elements ever settling into an actionable state.
 
 **Cross-layer assertions reuse the browser's token.** The back end keeps a single
 valid token per user: calling `GenerateToken` again silently invalidates the UI

@@ -43,6 +43,21 @@ npm run report              # open the HTML report
 
 Override the target environment with `BASE_URL=https://staging.example.com npm test`.
 
+#### Cross-browser runs
+
+Chromium is the gate and the only browser the setup above installs, so every
+`npm` script pins `--project=chromium`. Firefox and WebKit are opt-in and need
+their browsers installed first:
+
+```bash
+npx playwright install firefox webkit
+npm run test:cross-browser
+```
+
+All three browsers pass. They stay out of the PR gate to keep it fast, not because
+they are broken — but they run against a public demo site, so treat a failure there
+as "check the environment" before "check the product".
+
 ### API (Karate)
 
 Requires **Java 17** and Maven 3.8+. Karate's GraalJS engine does not support JDK 18+ —

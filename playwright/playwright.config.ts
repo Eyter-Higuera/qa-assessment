@@ -37,9 +37,13 @@ export default defineConfig({
     testIdAttribute: 'data-testid',
   },
 
+  // All three are declared so `--project=firefox` works, but the npm scripts pin
+  // `--project=chromium`: chromium is the gate, and it is the only browser the
+  // documented setup (`npx playwright install chromium`) actually installs.
+  // Cross-browser is genuinely opt-in - `npm run test:cross-browser`, after
+  // `npx playwright install firefox webkit`. See README -> Cross-browser runs.
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    // Cross-browser coverage is opt-in (`--project=firefox`) to keep the PR gate fast.
     { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
   ],

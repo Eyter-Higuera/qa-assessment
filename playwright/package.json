@@ -4,10 +4,11 @@
   "private": true,
   "description": "Playwright UI automation for the demoqa.com Book Store application",
   "scripts": {
-    "test": "playwright test",
-    "test:headed": "playwright test --headed",
-    "test:smoke": "playwright test --grep @smoke",
-    "test:e2e": "playwright test --grep @e2e",
+    "test": "playwright test --project=chromium",
+    "test:headed": "playwright test --project=chromium --headed",
+    "test:smoke": "playwright test --project=chromium --grep @smoke",
+    "test:e2e": "playwright test --project=chromium --grep @e2e",
+    "test:cross-browser": "playwright test --project=firefox --project=webkit",
     "report": "playwright show-report",
     "lint": "tsc --noEmit"
   },
