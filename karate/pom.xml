@@ -13,11 +13,25 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
-    <karate.version>1.5.1</karate.version>
+    <karate.version>1.4.1</karate.version>
     <junit5.version>5.11.3</junit5.version>
     <!-- Overridable at runtime: mvn test -Dkarate.env=staging -->
     <karate.env>dev</karate.env>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- Karate pulls an older JUnit Platform (1.9.x); without this the 5.11 engine
+           and the 1.9 launcher disagree and Surefire discovers zero tests. -->
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${junit5.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -30,6 +44,11 @@
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
       <version>${junit5.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-launcher</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

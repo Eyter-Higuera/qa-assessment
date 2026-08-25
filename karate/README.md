@@ -9,6 +9,19 @@ src/test/java/bookstore/books/          catalogue and collection contracts
 src/test/java/bookstore/*.java          JUnit 5 runners
 ```
 
+## Requirements
+
+**Java 17.** Karate 1.4.1 runs its JavaScript through GraalJS, which does not support
+JDK 18+: on a newer JDK the suite does not fail, it *hangs* at `waiting for N features
+to complete` with no error. This is the version CI pins (`.github/workflows/ci.yml`), so
+match it locally:
+
+```bash
+java -version          # must report 17.x
+```
+
+Maven 3.8+ is also required.
+
 ## Running
 
 ```bash

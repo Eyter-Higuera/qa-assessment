@@ -45,6 +45,10 @@ Override the target environment with `BASE_URL=https://staging.example.com npm t
 
 ### API (Karate)
 
+Requires **Java 17** and Maven 3.8+. Karate's GraalJS engine does not support JDK 18+ —
+on a newer JDK the suite hangs silently instead of failing, so check `java -version`
+first. Java 17 is what CI pins.
+
 ```bash
 cd karate
 mvn test -Dtest=BookStoreApiTest    # full suite
