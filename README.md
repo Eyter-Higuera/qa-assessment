@@ -18,6 +18,7 @@ delete the book → logout.
 | [docs/test-plan.md](docs/test-plan.md) | Test plan for the Book Store application (Task A) |
 | [docs/defects.md](docs/defects.md) | Defects found while building the suite — with evidence |
 | [docs/qa-assessment.md](docs/qa-assessment.md) | Written answers: QA strategy, mentoring, multi-currency settlement |
+| [docs/assessment.html](docs/assessment.html) | All of the above as one formatted document — open in a browser, print to PDF |
 
 ## Running the tests
 
