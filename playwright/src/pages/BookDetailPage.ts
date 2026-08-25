@@ -8,7 +8,7 @@ export class BookDetailPage extends BasePage {
    * NOTE: the app renders *two* buttons with id="addNewRecordButton"
    * ("Back To Book Store" and "Add To Your Collection"). Selecting by id would be
    * ambiguous, so these are addressed by accessible name instead - which is also
-   * what a real user perceives. Filed as BUG-002 in docs/defects.md.
+   * what a real user perceives. Filed as BUG-002 in Senior_QA_Engineer_Assessment.md (Appendix B).
    */
   readonly addToCollectionButton = this.page.getByRole('button', { name: 'Add To Your Collection' });
   readonly backToStoreButton = this.page.getByRole('button', { name: 'Back To Book Store' });

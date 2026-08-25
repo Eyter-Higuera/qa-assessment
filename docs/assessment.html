@@ -243,45 +243,45 @@ html{scroll-behavior:smooth}
   </header>
 
   <nav class="rail" aria-label="Contents">
-<a class="t1" href="#part-11-test-strategy-and-amp-design"><b>Part 1.1</b> Test Strategy &amp; Design</a>
-<a class="t2" href="#q1-how-would-you-build-the-qa-function-the-30-day-plan"><b>Q1</b> How would you build the QA function?</a>
+<a class="t1" href="#part-11--test-strategy-amp-design"><b>Part 1.1</b> Test Strategy &amp; Design</a>
+<a class="t2" href="#q1-how-would-you-build-the-qa-function--the-30-day-plan"><b>Q1</b> How would you build the QA function?</a>
 <a class="t2" href="#q2-what-processes-and-tools-would-i-introduce"><b>Q2</b> What processes and tools would I introduce?</a>
 <a class="t2" href="#q3-how-would-i-measure-success"><b>Q3</b> How would I measure success?</a>
-<a class="t1" href="#part-12-test-planning-and-amp-automation"><b>Part 1.2</b> Test Planning &amp; Automation</a>
-<a class="t1" href="#part-21-mentoring"><b>Part 2.1</b> Mentoring</a>
+<a class="t1" href="#part-12--test-planning-amp-automation"><b>Part 1.2</b> Test Planning &amp; Automation</a>
+<a class="t1" href="#part-21--mentoring"><b>Part 2.1</b> Mentoring</a>
 <a class="t2" href="#the-four-problems-and-what-each-one-actually-is">The four problems, and what each one actually is</a>
 <a class="t2" href="#a-three-month-development-plan">A. Three-month development plan</a>
 <a class="t2" href="#targeted-interventions-for-each-specific-problem">Targeted interventions for each specific problem</a>
 <a class="t2" href="#b-how-i-would-structure-11s">B. How I would structure 1:1s</a>
 <a class="t2" href="#c-specific-resources-and-exercises">C. Specific resources and exercises</a>
 <a class="t2" href="#d-how-i-would-measure-progress">D. How I would measure progress</a>
-<a class="t1" href="#part-22-code-review-exercise"><b>Part 2.2</b> Code Review Exercise</a>
+<a class="t1" href="#part-22--code-review-exercise"><b>Part 2.2</b> Code Review Exercise</a>
 <a class="t2" href="#the-review">The review</a>
 <a class="t2" href="#the-corrected-version">The corrected version</a>
 <a class="t2" href="#summary">Summary</a>
-<a class="t1" href="#part-3-multi-currency-settlement-with-fx-conversion"><b>Part 3</b> Multi-Currency Settlement with FX Conversion</a>
+<a class="t1" href="#part-3--multi-currency-settlement-with-fx-conversion"><b>Part 3</b> Multi-Currency Settlement with FX Conversion</a>
 <a class="t2" href="#the-shape-of-this-feature">The shape of this feature</a>
 <a class="t2" href="#a-risk-based-test-strategy">A. Risk-based test strategy</a>
 <a class="t2" href="#b-test-data-strategy">B. Test data strategy</a>
 <a class="t2" href="#closing-note">Closing note</a>
-<a class="t1" href="#appendix-a-test-plan"><b>Appendix A</b> Test Plan</a>
-<a class="t2" href="#s-1-what-we-are-testing-and-why">1. What we are testing and why</a>
-<a class="t2" href="#s-2-risk-analysis-what-drives-coverage">2. Risk analysis — what drives coverage</a>
-<a class="t2" href="#s-3-test-approach-by-layer">3. Test approach by layer</a>
-<a class="t2" href="#s-4-test-coverage">4. Test coverage</a>
-<a class="t2" href="#s-5-test-data-strategy">5. Test data strategy</a>
-<a class="t2" href="#s-6-environments">6. Environments</a>
-<a class="t2" href="#s-7-entry-and-exit-criteria">7. Entry and exit criteria</a>
-<a class="t2" href="#s-8-reporting">8. Reporting</a>
-<a class="t2" href="#s-9-known-constraints">9. Known constraints</a>
-<a class="t1" href="#appendix-b-defects-found"><b>Appendix B</b> Defects Found</a>
+<a class="t1" href="#appendix-a--test-plan"><b>Appendix A</b> Test Plan</a>
+<a class="t2" href="#1-what-we-are-testing-and-why">1. What we are testing and why</a>
+<a class="t2" href="#2-risk-analysis--what-drives-coverage">2. Risk analysis — what drives coverage</a>
+<a class="t2" href="#3-test-approach-by-layer">3. Test approach by layer</a>
+<a class="t2" href="#4-test-coverage">4. Test coverage</a>
+<a class="t2" href="#5-test-data-strategy">5. Test data strategy</a>
+<a class="t2" href="#6-environments">6. Environments</a>
+<a class="t2" href="#7-entry-and-exit-criteria">7. Entry and exit criteria</a>
+<a class="t2" href="#8-reporting">8. Reporting</a>
+<a class="t2" href="#9-known-constraints">9. Known constraints</a>
+<a class="t1" href="#appendix-b--defects-found"><b>Appendix B</b> Defects Found</a>
 <a class="t2" href="#web-ui">Web UI</a>
 <a class="t2" href="#api">API</a>
 <a class="t2" href="#environment-constraint-not-a-defect">Environment constraint (not a defect)</a>
   </nav>
 
   <article>
-<section class="part"><h1 id="part-11-test-strategy-and-amp-design"><span class="eyebrow">Part 1.1</span><span class="part-title">Test Strategy &amp; Design</span></h1><p><strong>The situation in one line:</strong> 100,000 transactions a day move through Go services with
+<section class="part"><h1 id="part-11--test-strategy-amp-design"><span class="eyebrow">Part 1.1</span><span class="part-title">Test Strategy &amp; Design</span></h1><p><strong>The situation in one line:</strong> 100,000 transactions a day move through Go services with
 no automated tests, deployed daily by five engineers, with two manual QAs and frequent
 production bugs.</p>
 <p>The instinct is to start writing tests. That is the wrong first move. With daily deploys
@@ -293,7 +293,7 @@ It is somebody&#39;s money in the wrong place. A double-charged customer, a refu
 silently fails, a settlement that is out by two units of currency — those are the defects
 that cost a payments company its licence to operate, and they are not the ones a login
 test finds.</p>
-<h2 id="q1-how-would-you-build-the-qa-function-the-30-day-plan">Q1. How would you build the QA function? — the 30-day plan</h2><h3 id="days-110-find-out-where-the-bleeding-is">Days 1–10: find out where the bleeding is</h3><div class="tw"><table><thead><tr><th>Activity</th><th>Output</th></tr></thead><tbody><tr><td>Read every production incident and bug ticket from the last 90 days. Classify by flow, root cause, severity, and <em>the stage that should have caught it</em>.</td><td>An escape analysis: &quot;68% of our escapes are refund edge cases that a service-level test would have caught.&quot; This one document justifies everything that follows.</td></tr><tr><td>Map the money path with the three backend developers: transaction → capture → refund → settlement. Every state, every external call, every place money can be double-counted or lost.</td><td>A risk map, ranked. This drives all coverage decisions from here on.</td></tr><tr><td>Sit with the two junior QAs and watch them test a release, without intervening.</td><td>Where the manual effort actually goes, and how much of it is repetitive regression that automation should own.</td></tr><tr><td>Trace one release end-to-end. Who decides it ships? What is checked? What is not?</td><td>The current release process, written down — usually the first time anyone has seen it whole.</td></tr><tr><td>Talk to support and finance/ops.</td><td>The defects customers <em>feel</em>, which are often not the ones engineering tracks.</td></tr></tbody></table></div><p><strong>Deliverable at day 10:</strong> a one-page risk and escape analysis presented to the team,
+<h2 id="q1-how-would-you-build-the-qa-function--the-30-day-plan">Q1. How would you build the QA function? — the 30-day plan</h2><h3 id="days-110-find-out-where-the-bleeding-is">Days 1–10: find out where the bleeding is</h3><div class="tw"><table><thead><tr><th>Activity</th><th>Output</th></tr></thead><tbody><tr><td>Read every production incident and bug ticket from the last 90 days. Classify by flow, root cause, severity, and <em>the stage that should have caught it</em>.</td><td>An escape analysis: &quot;68% of our escapes are refund edge cases that a service-level test would have caught.&quot; This one document justifies everything that follows.</td></tr><tr><td>Map the money path with the three backend developers: transaction → capture → refund → settlement. Every state, every external call, every place money can be double-counted or lost.</td><td>A risk map, ranked. This drives all coverage decisions from here on.</td></tr><tr><td>Sit with the two junior QAs and watch them test a release, without intervening.</td><td>Where the manual effort actually goes, and how much of it is repetitive regression that automation should own.</td></tr><tr><td>Trace one release end-to-end. Who decides it ships? What is checked? What is not?</td><td>The current release process, written down — usually the first time anyone has seen it whole.</td></tr><tr><td>Talk to support and finance/ops.</td><td>The defects customers <em>feel</em>, which are often not the ones engineering tracks.</td></tr></tbody></table></div><p><strong>Deliverable at day 10:</strong> a one-page risk and escape analysis presented to the team,
 with a proposed top-five critical flows. Not a QA manifesto — evidence, and a proposal.</p>
 <h3 id="days-1120-stop-the-bleeding-then-automate-the-highest-value-path">Days 11–20: stop the bleeding, then automate the highest-value path</h3><p>Two things run in parallel, because automation takes weeks and production bugs are
 happening today.</p>
@@ -370,7 +370,7 @@ testing that automation can never replace.</li>
 </ul>
 <h2 id="q3-how-would-i-measure-success">Q3. How would I measure success?</h2><p>Metrics have to answer the question an executive actually asks: <em>are we shipping faster
 with fewer things going wrong?</em> Anything that only measures QA activity is noise.</p>
-<h3 id="the-four-that-matter-most">The four that matter most</h3><div class="tw"><table><thead><tr><th>Metric</th><th>Definition</th><th>Why it is the real signal</th><th>90-day target</th></tr></thead><tbody><tr><td><strong>Escaped defect rate</strong></td><td>Production defects per release, weighted by severity</td><td>The honest measure of whether testing works</td><td>Down 60% from the day-10 baseline</td></tr><tr><td><strong>Change failure rate</strong></td><td>Deploys causing an incident or rollback</td><td>Connects quality directly to delivery (DORA)</td><td>Under 15%</td></tr><tr><td><strong>Mean time to detect</strong></td><td>Deploy → we know something is wrong</td><td>In payments, an hour of undetected breakage is an hour of misplaced money</td><td>Under 15 minutes for critical flows</td></tr><tr><td><strong>Critical-path automated coverage</strong></td><td>Of the ranked money-path risks, how many have an automated test</td><td>Coverage of what matters, not of what is easy</td><td>100% of P0 by day 60</td></tr></tbody></table></div><h3 id="supporting-health-metrics">Supporting health metrics</h3><div class="tw"><table><thead><tr><th>Metric</th><th>Target</th><th>What it protects</th></tr></thead><tbody><tr><td>Defect detection percentage by stage</td><td>&gt; 85% caught before production</td><td>Tells us <em>where</em> to invest next</td></tr><tr><td>Test suite runtime (PR gate)</td><td>&lt; 10 minutes</td><td>Developer trust; batching behaviour</td></tr><tr><td>Flake rate</td><td>&lt; 2%</td><td>A suite people ignore is worse than no suite</td></tr><tr><td>Mean time to restore</td><td>&lt; 1 hour</td><td>Recovery matters as much as prevention</td></tr><tr><td>Defect reopen rate</td><td>&lt; 10%</td><td>Quality of the fix and of the bug report</td></tr><tr><td>Escaped defects by root cause</td><td>Trending, not targeted</td><td>Feeds the escape analysis loop</td></tr></tbody></table></div><h3 id="payments-specific-quality-metrics-the-ones-finance-cares-about">Payments-specific quality metrics — the ones finance cares about</h3><p>These are the numbers I would put on a dashboard next to the engineering ones, because
+<h3 id="the-four-that-matter-most">The four that matter most</h3><div class="tw"><table><thead><tr><th>Metric</th><th>Definition</th><th>Why it is the real signal</th><th>90-day target</th></tr></thead><tbody><tr><td><strong>Escaped defect rate</strong></td><td>Production defects per release, weighted by severity</td><td>The honest measure of whether testing works</td><td>Down 60% from the day-10 baseline</td></tr><tr><td><strong>Change failure rate</strong></td><td>Deploys causing an incident or rollback</td><td>Connects quality directly to delivery (DORA)</td><td>Under 15%</td></tr><tr><td><strong>Mean time to detect</strong></td><td>Deploy → we know something is wrong</td><td>In payments, an hour of undetected breakage is an hour of misplaced money</td><td>Under 15 minutes for critical flows</td></tr><tr><td><strong>Critical-path automated coverage</strong></td><td>Of the ranked money-path risks, how many have an automated test</td><td>Coverage of what matters, not of what is easy</td><td>100% of P0 by day 60</td></tr></tbody></table></div><h3 id="supporting-health-metrics">Supporting health metrics</h3><div class="tw"><table><thead><tr><th>Metric</th><th>Target</th><th>What it protects</th></tr></thead><tbody><tr><td>Defect detection percentage by stage</td><td>&gt; 85% caught before production</td><td>Tells us <em>where</em> to invest next</td></tr><tr><td>Test suite runtime (PR gate)</td><td>&lt; 10 minutes</td><td>Developer trust; batching behaviour</td></tr><tr><td>Flake rate</td><td>&lt; 2%</td><td>A suite people ignore is worse than no suite</td></tr><tr><td>Mean time to restore</td><td>&lt; 1 hour</td><td>Recovery matters as much as prevention</td></tr><tr><td>Defect reopen rate</td><td>&lt; 10%</td><td>Quality of the fix and of the bug report</td></tr><tr><td>Escaped defects by root cause</td><td>Trending, not targeted</td><td>Feeds the escape analysis loop</td></tr></tbody></table></div><h3 id="payments-specific-quality-metrics--the-ones-finance-cares-about">Payments-specific quality metrics — the ones finance cares about</h3><p>These are the numbers I would put on a dashboard next to the engineering ones, because
 in this domain they <em>are</em> the definition of quality:</p>
 <ul>
 <li><strong>Settlement reconciliation breaks</strong> per day (target: zero, alarmed immediately)</li>
@@ -392,15 +392,15 @@ product. Each month answers three questions: what escaped and why, what we chang
 response, and what the next biggest risk is. Trends, not snapshots — and honesty when a
 number gets worse, since a metric that only ever improves is a metric nobody trusts.</p>
 
-</section><section class="part"><h1 id="part-12-test-planning-and-amp-automation"><span class="eyebrow">Part 1.2</span><span class="part-title">Test Planning &amp; Automation</span></h1><p>Both deliverables are in this repository.</p>
-<p><strong>Task A — Test plan:</strong> <a href="#appendix-a-test-plan">docs/test-plan.md</a>. Risk-driven, with a coverage
+</section><section class="part"><h1 id="part-12--test-planning-amp-automation"><span class="eyebrow">Part 1.2</span><span class="part-title">Test Planning &amp; Automation</span></h1><p>Both deliverables are in this repository.</p>
+<p><strong>Task A — Test plan:</strong> <a href="#appendix-a--test-plan">Appendix A</a>. Risk-driven, with a coverage
 matrix for both layers, test data and environment strategy, and entry/exit criteria.</p>
 <p><strong>Task B — Automation:</strong></p>
-<div class="tw"><table><thead><tr><th></th><th>Location</th><th>Result</th></tr></thead><tbody><tr><td>Web (Playwright + TypeScript)</td><td><code class="path"><code>web-playwright/</code></code></td><td><strong>7 tests passing</strong> against the live site</td></tr><tr><td>API (Karate)</td><td><code class="path"><code>api-karate/</code></code></td><td><strong>23 scenarios passing</strong> against the live API</td></tr></tbody></table></div><p>Both suites automate the required flow — register, login, search and add a book, view the
+<div class="tw"><table><thead><tr><th></th><th>Location</th><th>Result</th></tr></thead><tbody><tr><td>Web (Playwright + TypeScript)</td><td><a href="playwright/"><code>playwright/</code></a></td><td><strong>7 tests passing</strong> against the live site</td></tr><tr><td>API (Karate)</td><td><a href="karate/"><code>karate/</code></a></td><td><strong>23 scenarios passing</strong> against the live API</td></tr></tbody></table></div><p>Both suites automate the required flow — register, login, search and add a book, view the
 collection, delete the book, log out. Both were executed against demoqa.com while writing
 this; the design decisions behind them are in the READMEs.</p>
 <p><strong>Eleven defects and observations came out of building it</strong>, documented with reproduction
-steps in <a href="#appendix-b-defects-found">docs/defects.md</a>. Two are worth surfacing here, because they are the
+steps in <a href="#appendix-b--defects-found">Appendix B</a>. Two are worth surfacing here, because they are the
 kind that a suite written to pass would never have found:</p>
 <ol>
 <li><strong>Failed authentication returns <code>200 OK</code></strong> with <code>{&quot;status&quot;:&quot;Failed&quot;}</code>. Any client
@@ -414,18 +414,18 @@ laptop loses one of them without explanation.</li>
 authorisation. The <code>userId</code> travels in the request body, which invites a naive
 implementation to trust it — this one does not, and the <code>@security</code> scenarios prove it.</p>
 
-</section><section class="part"><h1 id="part-21-mentoring"><span class="eyebrow">Part 2.1</span><span class="part-title">Mentoring</span></h1><h2 id="the-four-problems-and-what-each-one-actually-is">The four problems, and what each one actually is</h2><p>Before the plan, a diagnosis — because the four symptoms in the brief have different
+</section><section class="part"><h1 id="part-21--mentoring"><span class="eyebrow">Part 2.1</span><span class="part-title">Mentoring</span></h1><h2 id="the-four-problems-and-what-each-one-actually-is">The four problems, and what each one actually is</h2><p>Before the plan, a diagnosis — because the four symptoms in the brief have different
 causes and the same fix would not work on all of them.</p>
 <div class="tw"><table><thead><tr><th>Symptom</th><th>What it usually really is</th></tr></thead><tbody><tr><td>Struggles with programming concepts</td><td>Being asked to write code from a blank page before ever having read enough of it. Almost nobody learns to write in a language they have not read.</td></tr><tr><td>Test cases too vague, miss edge cases</td><td>Not a writing problem. A <em>thinking</em> problem: no systematic technique for generating cases, so they rely on imagination and imagination is uneven.</td></tr><tr><td>Discouraged when bugs are rejected</td><td>Partly report quality, partly that nobody has told them rejection is normal. A rejected bug feels like being told you are bad at your job.</td></tr><tr><td>Poor estimates</td><td>Estimating work they have not decomposed. Nobody can estimate &quot;test the refund feature&quot;; anyone can estimate &quot;write six API cases for partial refunds&quot;.</td></tr></tbody></table></div><p>Only one of these is a technical skill gap. That shapes everything below.</p>
 <h2 id="a-three-month-development-plan">A. Three-month development plan</h2><p><strong>The goal by day 90:</strong> independently automates a small feature end to end, writes test
 cases a peer would not need to rewrite, and reports bugs that get accepted first time.</p>
-<h3 id="month-1-foundations-and-confidence">Month 1 — Foundations and confidence</h3><p><em>Theme: read before you write.</em></p>
+<h3 id="month-1--foundations-and-confidence">Month 1 — Foundations and confidence</h3><p><em>Theme: read before you write.</em></p>
 <div class="tw"><table><thead><tr><th>Week</th><th>Focus</th><th>Concrete work</th></tr></thead><tbody><tr><td>1</td><td>JavaScript fundamentals — variables, functions, async/await, arrays</td><td>30 min/day on exercism.io JS track. Pair with me for one hour; I write, narrating every decision.</td></tr><tr><td>2</td><td>Reading tests</td><td>Given our existing suite: explain what five tests do, in writing. Then <em>modify</em> three of them (change an assertion, add a case to a data table). No blank pages this month.</td></tr><tr><td>3</td><td>Test design technique</td><td>Equivalence partitioning and boundary value analysis, applied to our real password and amount validation. Deliverable: a set of cases derived by technique, not by intuition.</td></tr><tr><td>4</td><td>First contribution</td><td>Add two new cases to an existing suite by copying the shape of neighbouring ones. Full code review from me. <strong>Merged by end of month 1</strong> — this matters psychologically far more than its technical value.</td></tr></tbody></table></div><p><em>Success at month 1:</em> explains async/await in their own words; has merged test code;
 writes cases with explicit boundaries.</p>
-<h3 id="month-2-applied-automation">Month 2 — Applied automation</h3><p><em>Theme: write it yourself, with a net.</em></p>
+<h3 id="month-2--applied-automation">Month 2 — Applied automation</h3><p><em>Theme: write it yourself, with a net.</em></p>
 <div class="tw"><table><thead><tr><th>Week</th><th>Focus</th><th>Concrete work</th></tr></thead><tbody><tr><td>5</td><td>Page object model</td><td>Refactor one existing spec&#39;s selectors into a page object. Refactoring teaches structure faster than greenfield code.</td></tr><tr><td>6</td><td>API testing</td><td>Automate three endpoints, including negative cases. API tests are the gentler on-ramp: no selectors, no waiting, clear pass/fail.</td></tr><tr><td>7</td><td>A whole small feature</td><td>Own the automation for one low-risk feature, from test design through to merged PR. I review, I do not write.</td></tr><tr><td>8</td><td>Debugging and flake</td><td>Give them a deliberately flaky test to diagnose. Teach traces, retries, and why <code>waitForTimeout</code> is the enemy.</td></tr></tbody></table></div><p><em>Success at month 2:</em> writes a new test from scratch without a template; can explain why
 a test failed rather than just re-running it.</p>
-<h3 id="month-3-ownership-and-judgement">Month 3 — Ownership and judgement</h3><p><em>Theme: decide, don&#39;t just execute.</em></p>
+<h3 id="month-3--ownership-and-judgement">Month 3 — Ownership and judgement</h3><p><em>Theme: decide, don&#39;t just execute.</em></p>
 <div class="tw"><table><thead><tr><th>Week</th><th>Focus</th><th>Concrete work</th></tr></thead><tbody><tr><td>9</td><td>Risk-based thinking</td><td>For an upcoming feature, they produce the test plan. We compare it against mine and discuss the differences — not the &quot;gaps&quot;, the <em>differences</em>.</td></tr><tr><td>10</td><td>Code review</td><td>They review someone else&#39;s test PR. Reviewing is how you learn what good looks like.</td></tr><tr><td>11</td><td>Bug advocacy</td><td>Own triage for a week: write, defend, and follow up on every bug they raise.</td></tr><tr><td>12</td><td>Teach it back</td><td>A 30-minute session to the team on something they learned. Teaching exposes what is still shaky, and rebuilds standing with the developers.</td></tr></tbody></table></div><p><em>Success at month 3:</em> owns a feature area&#39;s testing; their bugs are accepted first time;
 their estimates land within ±25%.</p>
 <h2 id="targeted-interventions-for-each-specific-problem">Targeted interventions for each specific problem</h2><p><strong>Programming struggle → read, modify, then write.</strong> Nobody learns to write code from a
@@ -488,7 +488,7 @@ someone who knows where a payments product breaks has a career that does not req
 writing Playwright. Steering someone toward what they are excellent at is mentoring;
 insisting they become a version of me is not.</p>
 
-</section><section class="part"><h1 id="part-22-code-review-exercise"><span class="eyebrow">Part 2.2</span><span class="part-title">Code Review Exercise</span></h1><blockquote>
+</section><section class="part"><h1 id="part-22--code-review-exercise"><span class="eyebrow">Part 2.2</span><span class="part-title">Code Review Exercise</span></h1><blockquote>
 <p><strong>A note on how I would deliver this.</strong> In writing, on the PR, I would lead with what
 works and keep the tone collaborative — as below. But I would also spend twenty minutes
 pairing on it, because a review this long lands very differently in a conversation than
@@ -499,7 +499,7 @@ apply silently.</p>
 the structure is already right: navigate, fill, submit, verify. Everything below is
 refinement of something that already works.</p>
 <p>There is one issue that matters far more than the rest, so let me start there.</p>
-<h3 id="critical-this-test-cannot-fail"><i class="sev sev-crit" aria-hidden="true"></i> Critical — this test cannot fail</h3><pre><code class="language-js">if (url.includes(&#39;dashboard&#39;)) {
+<h3 id="critical--this-test-cannot-fail"><i class="sev sev-crit" aria-hidden="true"></i> Critical — this test cannot fail</h3><pre><code class="language-js">if (url.includes(&#39;dashboard&#39;)) {
   console.log(&#39;TEST PASSED&#39;);
 } else {
   console.log(&#39;TEST FAILED&#39;);
@@ -518,7 +518,7 @@ communicates.</p>
 <p>If you take one thing from this review: <strong>every test needs at least one assertion, and
 <code>console.log</code> is never one.</strong> The quick self-check I use — <em>&quot;if the feature were
 completely broken, would this test go red?&quot;</em> If the answer is no, it is not a test yet.</p>
-<h3 id="critical-the-import-is-wrong-so-this-never-runs"><i class="sev sev-crit" aria-hidden="true"></i> Critical — the import is wrong, so this never runs</h3><pre><code class="language-js">const test = require(&#39;playwright&#39;);   // this package has no `test` export
+<h3 id="critical--the-import-is-wrong-so-this-never-runs"><i class="sev sev-crit" aria-hidden="true"></i> Critical — the import is wrong, so this never runs</h3><pre><code class="language-js">const test = require(&#39;playwright&#39;);   // this package has no `test` export
 </code></pre>
 <p><code>playwright</code> is the browser automation library. <code>@playwright/test</code> is the test runner
 that provides <code>test</code>, <code>expect</code>, fixtures, reporting and retries.</p>
@@ -526,7 +526,7 @@ that provides <code>test</code>, <code>expect</code>, fixtures, reporting and re
 </code></pre>
 <p>Worth knowing because the two packages are easy to confuse, and the error you get is not
 obvious.</p>
-<h3 id="important-waitfortimeout5000-will-make-this-slow-and-flaky"><i class="sev sev-high" aria-hidden="true"></i> Important — <code>waitForTimeout(5000)</code> will make this slow <em>and</em> flaky</h3><pre><code class="language-js">await page.waitForTimeout(5000);
+<h3 id="important--waitfortimeout5000-will-make-this-slow-and-flaky"><i class="sev sev-high" aria-hidden="true"></i> Important — <code>waitForTimeout(5000)</code> will make this slow <em>and</em> flaky</h3><pre><code class="language-js">await page.waitForTimeout(5000);
 </code></pre>
 <p>A fixed sleep is a bet on how long something takes. You lose the bet in both directions:
 if login takes 200 ms, five seconds are wasted on every run; if the CI machine is loaded
@@ -538,7 +538,7 @@ the <em>condition</em> is both faster and more reliable:</p>
 <pre><code class="language-js">await expect(page).toHaveURL(/dashboard/);   // waits only as long as it needs to
 </code></pre>
 <p>Rule of thumb: <strong>wait for a condition, never for a duration.</strong></p>
-<h3 id="important-asserting-on-the-url-alone-is-a-weak-oracle"><i class="sev sev-high" aria-hidden="true"></i> Important — asserting on the URL alone is a weak oracle</h3><p><code>url.includes(&#39;dashboard&#39;)</code> passes if the app redirects to <code>/dashboard</code> and then renders
+<h3 id="important--asserting-on-the-url-alone-is-a-weak-oracle"><i class="sev sev-high" aria-hidden="true"></i> Important — asserting on the URL alone is a weak oracle</h3><p><code>url.includes(&#39;dashboard&#39;)</code> passes if the app redirects to <code>/dashboard</code> and then renders
 an error, or an empty shell, or a spinner that never resolves. It answers &quot;did we
 navigate?&quot; when the question is &quot;am I logged in?&quot;</p>
 <p>Assert on something only a logged-in user can see:</p>
@@ -547,7 +547,7 @@ await expect(page.getByTestId(&#39;user-menu&#39;)).toContainText(&#39;test@test
 </code></pre>
 <p>Also — <code>includes(&#39;dashboard&#39;)</code> would match <code>/login?error=dashboard-unavailable</code>. Prefer a
 precise pattern.</p>
-<h3 id="important-manual-browser-lifecycle-leaks-processes"><i class="sev sev-high" aria-hidden="true"></i> Important — manual browser lifecycle leaks processes</h3><pre><code class="language-js">const browser = await test.chromium.launch();
+<h3 id="important--manual-browser-lifecycle-leaks-processes"><i class="sev sev-high" aria-hidden="true"></i> Important — manual browser lifecycle leaks processes</h3><pre><code class="language-js">const browser = await test.chromium.launch();
 // ...
 await browser.close();
 </code></pre>
@@ -558,7 +558,7 @@ which is a horrible thing to debug.</p>
 cleaned up, even on failure. It also gives you traces and screenshots for free.</p>
 <pre><code class="language-js">test(&#39;...&#39;, async ({ page }) =&gt; { /* browser lifecycle handled for you */ });
 </code></pre>
-<h3 id="worth-fixing-hardcoded-url-and-credentials"><i class="sev sev-med" aria-hidden="true"></i> Worth fixing — hardcoded URL and credentials</h3><pre><code class="language-js">await page.goto(&#39;http://localhost:3000/login&#39;);
+<h3 id="worth-fixing--hardcoded-url-and-credentials"><i class="sev sev-med" aria-hidden="true"></i> Worth fixing — hardcoded URL and credentials</h3><pre><code class="language-js">await page.goto(&#39;http://localhost:3000/login&#39;);
 await page.fill(&#39;#email&#39;, &#39;test@test.com&#39;);
 await page.fill(&#39;#password&#39;, &#39;password123&#39;);
 </code></pre>
@@ -568,7 +568,7 @@ it in <code>playwright.config.ts</code> as <code>baseURL</code> and navigate wit
 credential is committed, it is in the git history forever. The habit is worth building
 now, on a fake password, so it is automatic later. Use environment variables, or better,
 create the user in setup so the test does not depend on data someone else might delete.</p>
-<h3 id="worth-fixing-the-test-name-does-not-say-what-it-checks"><i class="sev sev-med" aria-hidden="true"></i> Worth fixing — the test name does not say what it checks</h3><pre><code class="language-js">// test for login
+<h3 id="worth-fixing--the-test-name-does-not-say-what-it-checks"><i class="sev sev-med" aria-hidden="true"></i> Worth fixing — the test name does not say what it checks</h3><pre><code class="language-js">// test for login
 test(&#39;login test&#39;, async () =&gt; {
 </code></pre>
 <p>When this fails in CI at 2 a.m., the report says <code>login test failed</code> — which tells you
@@ -577,7 +577,7 @@ nothing. A name that states the expected behaviour makes the report readable on 
 </code></pre>
 <p>The comment <code>// test for login</code> repeats the name; delete it. Good comments explain <em>why</em>,
 not <em>what</em> — the code already says what.</p>
-<h3 id="worth-fixing-selectors-tied-to-implementation"><i class="sev sev-med" aria-hidden="true"></i> Worth fixing — selectors tied to implementation</h3><p><code>#email</code>, <code>#password</code> and <code>#submit</code> are fine while those ids exist, but they break the
+<h3 id="worth-fixing--selectors-tied-to-implementation"><i class="sev sev-med" aria-hidden="true"></i> Worth fixing — selectors tied to implementation</h3><p><code>#email</code>, <code>#password</code> and <code>#submit</code> are fine while those ids exist, but they break the
 moment someone refactors the markup, and they do not describe what a user sees. Playwright
 prefers user-facing locators:</p>
 <pre><code class="language-js">await page.getByLabel(&#39;Email&#39;).fill(...);
@@ -586,7 +586,7 @@ await page.getByRole(&#39;button&#39;, { name: &#39;Sign in&#39; }).click();
 <p>These survive refactoring and double as an accessibility check — if <code>getByLabel</code> cannot
 find the field, a screen reader cannot either. (Where the markup gives us nothing stable,
 ask the developers for a <code>data-testid</code>. That is a reasonable thing to request.)</p>
-<h3 id="consider-next-only-the-happy-path-is-covered"><i class="sev sev-low" aria-hidden="true"></i> Consider next — only the happy path is covered</h3><p>The most valuable login tests are the ones this file does not have yet: wrong password,
+<h3 id="consider-next--only-the-happy-path-is-covered"><i class="sev sev-low" aria-hidden="true"></i> Consider next — only the happy path is covered</h3><p>The most valuable login tests are the ones this file does not have yet: wrong password,
 unknown user, empty fields, and — importantly — that a failed login does <em>not</em> create a
 session. Those are where the security bugs live. Worth a follow-up PR; you do not need to
 do it in this one.</p>
@@ -638,7 +638,7 @@ things worse.</p>
 <p>Genuinely good first automation — the structure of the flow is right, and that is the part
 that is hard to teach. Want to pair on the negative cases tomorrow? That is the fun part.</p>
 
-</section><section class="part"><h1 id="part-3-multi-currency-settlement-with-fx-conversion"><span class="eyebrow">Part 3</span><span class="part-title">Multi-Currency Settlement with FX Conversion</span></h1><h2 id="the-shape-of-this-feature">The shape of this feature</h2><p>Fifteen currencies, three rate providers with failover, a 60-second rate lock, per-currency
+</section><section class="part"><h1 id="part-3--multi-currency-settlement-with-fx-conversion"><span class="eyebrow">Part 3</span><span class="part-title">Multi-Currency Settlement with FX Conversion</span></h1><h2 id="the-shape-of-this-feature">The shape of this feature</h2><p>Fifteen currencies, three rate providers with failover, a 60-second rate lock, per-currency
 minimums, and cross-border regulatory compliance. Every one of those is a place where
 money can be quietly wrong.</p>
 <p>The thing that makes FX settlement different from most features: <strong>there is often no
@@ -646,9 +646,9 @@ error.</strong> A payment either succeeds or fails, visibly. An FX conversion at
 succeeds, looks completely normal, and is wrong by an amount nobody notices until
 reconciliation — or until a regulator does. So the strategy leans hard on invariants,
 reconciliation and property-based checks, not just on example-based tests.</p>
-<h2 id="a-risk-based-test-strategy">A. Risk-based test strategy</h2><h3 id="s-1-risk-register">1. Risk register</h3><p>Scored on impact (financial, regulatory, reputational) and probability, and — critically —
+<h2 id="a-risk-based-test-strategy">A. Risk-based test strategy</h2><h3 id="1-risk-register">1. Risk register</h3><p>Scored on impact (financial, regulatory, reputational) and probability, and — critically —
 <strong>detectability</strong>, because an undetectable defect is more dangerous than a loud one.</p>
-<h4 id="high-risk-exhaustive-coverage-ships-only-with-explicit-sign-off"><i class="sev sev-crit" aria-hidden="true"></i> High risk — exhaustive coverage, ships only with explicit sign-off</h4><div class="tw"><table><thead><tr><th>#</th><th>Risk</th><th>Why it is High</th></tr></thead><tbody><tr><td>H1</td><td><strong>Incorrect conversion or rounding</strong> — merchant settled the wrong amount</td><td>Direct financial loss, at scale, silently. A half-cent error on 100K transactions is real money and a real audit finding.</td></tr><tr><td>H2</td><td><strong>Currency precision handled wrong</strong> — JPY has 0 decimals, KWD/BHD/JOD have 3</td><td>Classic and catastrophic: treating ¥1000 as 10.00 is a 100× error. Any hardcoded assumption of two decimals is a defect waiting for a Japanese merchant.</td></tr><tr><td>H3</td><td><strong>Floating-point arithmetic on money</strong></td><td><code>0.1 + 0.2 !== 0.3</code>. Accumulates across settlement batches, breaks reconciliation, and is invisible in the happy path.</td></tr><tr><td>H4</td><td><strong>Rate lock not honoured</strong> — quoted at one rate, settled at another</td><td>Direct financial and legal exposure: the quote is a commitment to the merchant.</td></tr><tr><td>H5</td><td><strong>Provider failover fails or picks a bad rate</strong></td><td>Fallback paths are the least-exercised and most-trusted code in any system.</td></tr><tr><td>H6</td><td><strong>Double settlement / lost settlement</strong> on retry or partial failure</td><td>Money created or destroyed. The single worst outcome in payments.</td></tr><tr><td>H7</td><td><strong>Regulatory breach on cross-border</strong> — sanctions screening, reporting thresholds, prohibited corridors</td><td>Fines, licence risk. Not recoverable by shipping a patch.</td></tr><tr><td>H8</td><td><strong>Ledger imbalance</strong> — debits and credits do not reconcile after conversion</td><td>Undermines every financial report the company produces.</td></tr><tr><td>H9</td><td><strong>Stale rate accepted as fresh</strong></td><td>Looks completely normal; found only by reconciliation, or by a counterparty.</td></tr></tbody></table></div><h4 id="medium-risk-automated-positive-negative-and-boundary-coverage"><i class="sev sev-med" aria-hidden="true"></i> Medium risk — automated positive, negative and boundary coverage</h4><div class="tw"><table><thead><tr><th>#</th><th>Risk</th></tr></thead><tbody><tr><td>M1</td><td>Minimum settlement threshold wrong per currency, or evaluated in the wrong currency</td></tr><tr><td>M2</td><td>Providers disagree beyond tolerance and no outlier rejection occurs</td></tr><tr><td>M3</td><td>Provider timeout or partial response handled poorly (hangs, retries a non-idempotent call)</td></tr><tr><td>M4</td><td>Rate-lock expiry boundary — the request that arrives at exactly 60 seconds</td></tr><tr><td>M5</td><td>Weekend, holiday and market-close rate behaviour</td></tr><tr><td>M6</td><td>Timezone and settlement cutoff errors (a settlement dated to the wrong business day)</td></tr><tr><td>M7</td><td>Refunds and chargebacks in a converted currency — at which rate?</td></tr><tr><td>M8</td><td>Fee calculation order relative to conversion (convert-then-fee ≠ fee-then-convert)</td></tr><tr><td>M9</td><td>Audit trail incomplete — which rate, from which provider, at what time</td></tr><tr><td>M10</td><td>Concurrency: simultaneous settlements for one merchant across currencies</td></tr></tbody></table></div><h4 id="low-risk-smoke-tests-and-exploratory"><i class="sev sev-low" aria-hidden="true"></i> Low risk — smoke tests and exploratory</h4><div class="tw"><table><thead><tr><th>#</th><th>Risk</th></tr></thead><tbody><tr><td>L1</td><td>Currency symbol, formatting and locale display in the dashboard</td></tr><tr><td>L2</td><td>Sorting and filtering multi-currency lists</td></tr><tr><td>L3</td><td>Export formatting (CSV/PDF) of converted amounts</td></tr><tr><td>L4</td><td>Historical rate display in reports</td></tr></tbody></table></div><h3 id="s-2-testing-approach-per-risk-level">2. Testing approach per risk level</h3><div class="tw"><table><thead><tr><th>Level</th><th>Coverage required</th><th>Techniques</th><th>Gate</th></tr></thead><tbody><tr><td class="sevcell"><i class="sev sev-crit" aria-hidden="true"></i> High</td><td>Every path, every currency, every failure mode</td><td>Example-based + <strong>property-based</strong> + fault injection + reconciliation invariants + manual finance review of golden values</td><td>Blocks release; sign-off from QA, finance, and compliance for H7</td></tr><tr><td class="sevcell"><i class="sev sev-med" aria-hidden="true"></i> Medium</td><td>Positive, negative, boundary</td><td>Boundary value analysis, state transition, contract tests, controlled-clock tests</td><td>Blocks release on failure</td></tr><tr><td class="sevcell"><i class="sev sev-low" aria-hidden="true"></i> Low</td><td>Happy path plus exploratory</td><td>Smoke automation, visual review, exploratory charters</td><td>Does not block; tracked</td></tr></tbody></table></div><p><strong>Why property-based testing earns its place at the High level.</strong> For conversion and
+<h4 id="high-risk--exhaustive-coverage-ships-only-with-explicit-sign-off"><i class="sev sev-crit" aria-hidden="true"></i> High risk — exhaustive coverage, ships only with explicit sign-off</h4><div class="tw"><table><thead><tr><th>#</th><th>Risk</th><th>Why it is High</th></tr></thead><tbody><tr><td>H1</td><td><strong>Incorrect conversion or rounding</strong> — merchant settled the wrong amount</td><td>Direct financial loss, at scale, silently. A half-cent error on 100K transactions is real money and a real audit finding.</td></tr><tr><td>H2</td><td><strong>Currency precision handled wrong</strong> — JPY has 0 decimals, KWD/BHD/JOD have 3</td><td>Classic and catastrophic: treating ¥1000 as 10.00 is a 100× error. Any hardcoded assumption of two decimals is a defect waiting for a Japanese merchant.</td></tr><tr><td>H3</td><td><strong>Floating-point arithmetic on money</strong></td><td><code>0.1 + 0.2 !== 0.3</code>. Accumulates across settlement batches, breaks reconciliation, and is invisible in the happy path.</td></tr><tr><td>H4</td><td><strong>Rate lock not honoured</strong> — quoted at one rate, settled at another</td><td>Direct financial and legal exposure: the quote is a commitment to the merchant.</td></tr><tr><td>H5</td><td><strong>Provider failover fails or picks a bad rate</strong></td><td>Fallback paths are the least-exercised and most-trusted code in any system.</td></tr><tr><td>H6</td><td><strong>Double settlement / lost settlement</strong> on retry or partial failure</td><td>Money created or destroyed. The single worst outcome in payments.</td></tr><tr><td>H7</td><td><strong>Regulatory breach on cross-border</strong> — sanctions screening, reporting thresholds, prohibited corridors</td><td>Fines, licence risk. Not recoverable by shipping a patch.</td></tr><tr><td>H8</td><td><strong>Ledger imbalance</strong> — debits and credits do not reconcile after conversion</td><td>Undermines every financial report the company produces.</td></tr><tr><td>H9</td><td><strong>Stale rate accepted as fresh</strong></td><td>Looks completely normal; found only by reconciliation, or by a counterparty.</td></tr></tbody></table></div><h4 id="medium-risk--automated-positive-negative-and-boundary-coverage"><i class="sev sev-med" aria-hidden="true"></i> Medium risk — automated positive, negative and boundary coverage</h4><div class="tw"><table><thead><tr><th>#</th><th>Risk</th></tr></thead><tbody><tr><td>M1</td><td>Minimum settlement threshold wrong per currency, or evaluated in the wrong currency</td></tr><tr><td>M2</td><td>Providers disagree beyond tolerance and no outlier rejection occurs</td></tr><tr><td>M3</td><td>Provider timeout or partial response handled poorly (hangs, retries a non-idempotent call)</td></tr><tr><td>M4</td><td>Rate-lock expiry boundary — the request that arrives at exactly 60 seconds</td></tr><tr><td>M5</td><td>Weekend, holiday and market-close rate behaviour</td></tr><tr><td>M6</td><td>Timezone and settlement cutoff errors (a settlement dated to the wrong business day)</td></tr><tr><td>M7</td><td>Refunds and chargebacks in a converted currency — at which rate?</td></tr><tr><td>M8</td><td>Fee calculation order relative to conversion (convert-then-fee ≠ fee-then-convert)</td></tr><tr><td>M9</td><td>Audit trail incomplete — which rate, from which provider, at what time</td></tr><tr><td>M10</td><td>Concurrency: simultaneous settlements for one merchant across currencies</td></tr></tbody></table></div><h4 id="low-risk--smoke-tests-and-exploratory"><i class="sev sev-low" aria-hidden="true"></i> Low risk — smoke tests and exploratory</h4><div class="tw"><table><thead><tr><th>#</th><th>Risk</th></tr></thead><tbody><tr><td>L1</td><td>Currency symbol, formatting and locale display in the dashboard</td></tr><tr><td>L2</td><td>Sorting and filtering multi-currency lists</td></tr><tr><td>L3</td><td>Export formatting (CSV/PDF) of converted amounts</td></tr><tr><td>L4</td><td>Historical rate display in reports</td></tr></tbody></table></div><h3 id="2-testing-approach-per-risk-level">2. Testing approach per risk level</h3><div class="tw"><table><thead><tr><th>Level</th><th>Coverage required</th><th>Techniques</th><th>Gate</th></tr></thead><tbody><tr><td class="sevcell"><i class="sev sev-crit" aria-hidden="true"></i> High</td><td>Every path, every currency, every failure mode</td><td>Example-based + <strong>property-based</strong> + fault injection + reconciliation invariants + manual finance review of golden values</td><td>Blocks release; sign-off from QA, finance, and compliance for H7</td></tr><tr><td class="sevcell"><i class="sev sev-med" aria-hidden="true"></i> Medium</td><td>Positive, negative, boundary</td><td>Boundary value analysis, state transition, contract tests, controlled-clock tests</td><td>Blocks release on failure</td></tr><tr><td class="sevcell"><i class="sev sev-low" aria-hidden="true"></i> Low</td><td>Happy path plus exploratory</td><td>Smoke automation, visual review, exploratory charters</td><td>Does not block; tracked</td></tr></tbody></table></div><p><strong>Why property-based testing earns its place at the High level.</strong> For conversion and
 rounding, example-based tests only prove the examples someone thought of. Properties hold
 for <em>all</em> inputs, and a generator finds the case nobody imagined:</p>
 <ul>
@@ -660,7 +660,7 @@ leakage across batches).</li>
 <li>Total debits equal total credits, in every currency, after every operation.</li>
 </ul>
 <p>That last one is the invariant I would run continuously in production, not only in tests.</p>
-<h3 id="s-3-test-coverage-detail-for-the-high-risks">3. Test coverage detail for the High risks</h3><p><strong>H1/H2/H3 — conversion, precision, arithmetic.</strong> A golden-value matrix agreed with
+<h3 id="3-test-coverage-detail-for-the-high-risks">3. Test coverage detail for the High risks</h3><p><strong>H1/H2/H3 — conversion, precision, arithmetic.</strong> A golden-value matrix agreed with
 finance: 15 currencies × representative amounts (minimum, typical, maximum, and values
 chosen to land exactly on a rounding boundary), with expected results calculated
 independently and reviewed. Plus static analysis banning float types on monetary values —
@@ -700,7 +700,7 @@ production monitor: after every settlement run, debits equal credits per currenc
 of converted amounts matches the source total within documented tolerance; every settled
 amount traces to a specific rate, provider and quote. Rates carry an age; anything beyond
 the freshness threshold is rejected, and that threshold is tested at its boundary.</p>
-<h3 id="s-4-environments-needed">4. Environments needed</h3><div class="tw"><table><thead><tr><th>Environment</th><th>Purpose</th><th>FX providers</th><th>Data</th></tr></thead><tbody><tr><td><strong>Local</strong></td><td>Developer feedback in seconds</td><td>Fully mocked, fixed rate matrix</td><td>Seeded fixtures, all 15 currencies</td></tr><tr><td><strong>CI (ephemeral)</strong></td><td>The merge gate</td><td>Deterministic mocks</td><td>Generated per run</td></tr><tr><td><strong>FX chaos</strong></td><td>Failover, latency, malformed responses, provider outages</td><td>Fault-injecting proxy</td><td>Same fixtures, faults on demand</td></tr><tr><td><strong>Staging</strong></td><td>Integration truth</td><td>Provider <strong>sandboxes</strong>, real protocols</td><td>Anonymised production-shaped data</td></tr><tr><td><strong>Compliance / pre-prod</strong></td><td>Regulatory validation, audit rehearsal</td><td>Sandbox, full audit logging on</td><td>Regulatory scenario set; access-restricted</td></tr><tr><td><strong>Production</strong></td><td>Post-deploy confidence</td><td>Real</td><td>Synthetic merchant, minimum-value settlements, plus continuous reconciliation monitors</td></tr></tbody></table></div><p>Two of these are non-obvious and I would fight for both. <strong>The chaos environment</strong>,
+<h3 id="4-environments-needed">4. Environments needed</h3><div class="tw"><table><thead><tr><th>Environment</th><th>Purpose</th><th>FX providers</th><th>Data</th></tr></thead><tbody><tr><td><strong>Local</strong></td><td>Developer feedback in seconds</td><td>Fully mocked, fixed rate matrix</td><td>Seeded fixtures, all 15 currencies</td></tr><tr><td><strong>CI (ephemeral)</strong></td><td>The merge gate</td><td>Deterministic mocks</td><td>Generated per run</td></tr><tr><td><strong>FX chaos</strong></td><td>Failover, latency, malformed responses, provider outages</td><td>Fault-injecting proxy</td><td>Same fixtures, faults on demand</td></tr><tr><td><strong>Staging</strong></td><td>Integration truth</td><td>Provider <strong>sandboxes</strong>, real protocols</td><td>Anonymised production-shaped data</td></tr><tr><td><strong>Compliance / pre-prod</strong></td><td>Regulatory validation, audit rehearsal</td><td>Sandbox, full audit logging on</td><td>Regulatory scenario set; access-restricted</td></tr><tr><td><strong>Production</strong></td><td>Post-deploy confidence</td><td>Real</td><td>Synthetic merchant, minimum-value settlements, plus continuous reconciliation monitors</td></tr></tbody></table></div><p>Two of these are non-obvious and I would fight for both. <strong>The chaos environment</strong>,
 because failover paths are the least-tested and most-trusted code in the system, and the
 only way to know they work is to break things on purpose. <strong>The compliance environment</strong>,
 because rehearsing an audit before a regulator asks is much cheaper than discovering
@@ -709,7 +709,7 @@ during one that the audit trail has a gap.</p>
 compromise — it is the only place where real rates, real provider behaviour and real
 volume exist together. It just has to be done with synthetic merchants, small amounts,
 and monitors that catch a problem in minutes.</p>
-<h2 id="b-test-data-strategy">B. Test data strategy</h2><h3 id="s-1-what-test-data-is-needed">1. What test data is needed</h3><div class="tw"><table><thead><tr><th>Category</th><th>Content</th></tr></thead><tbody><tr><td><strong>Currency configuration</strong></td><td>All 15: ISO 4217 code, decimal places (0/2/3), minimum settlement, supported corridors, cutoff time, regulatory flags</td></tr><tr><td><strong>Rate fixtures</strong></td><td>Normal rates; extreme but real (a 20% move); crossed/inverted pairs; stale timestamps; missing pairs; provider-disagreement sets; absurd outliers</td></tr><tr><td><strong>Merchant profiles</strong></td><td>Per jurisdiction and settlement currency; single- and multi-currency; sanctioned-country merchant; a merchant below every minimum</td></tr><tr><td><strong>Transaction sets</strong></td><td>Amounts below, exactly at, and above minimum; zero-decimal currencies; three-decimal currencies; amounts landing on rounding boundaries; maximum-value; multi-currency batches</td></tr><tr><td><strong>Regulatory scenarios</strong></td><td>Above and below reporting thresholds; prohibited corridors; incomplete beneficiary data; high-risk jurisdictions</td></tr><tr><td><strong>Temporal data</strong></td><td>Weekend, holiday, market close, month end, and a leap day; rate-lock boundaries at 59/60/61 seconds</td></tr><tr><td><strong>Historical rate series</strong></td><td>For reproducing a specific past settlement exactly — required for audit rehearsal and for defect reproduction</td></tr></tbody></table></div><h3 id="s-2-managing-currency-specific-data">2. Managing currency-specific data</h3><p><strong>One source of truth, and it is not the tests.</strong> The currency matrix — decimals,
+<h2 id="b-test-data-strategy">B. Test data strategy</h2><h3 id="1-what-test-data-is-needed">1. What test data is needed</h3><div class="tw"><table><thead><tr><th>Category</th><th>Content</th></tr></thead><tbody><tr><td><strong>Currency configuration</strong></td><td>All 15: ISO 4217 code, decimal places (0/2/3), minimum settlement, supported corridors, cutoff time, regulatory flags</td></tr><tr><td><strong>Rate fixtures</strong></td><td>Normal rates; extreme but real (a 20% move); crossed/inverted pairs; stale timestamps; missing pairs; provider-disagreement sets; absurd outliers</td></tr><tr><td><strong>Merchant profiles</strong></td><td>Per jurisdiction and settlement currency; single- and multi-currency; sanctioned-country merchant; a merchant below every minimum</td></tr><tr><td><strong>Transaction sets</strong></td><td>Amounts below, exactly at, and above minimum; zero-decimal currencies; three-decimal currencies; amounts landing on rounding boundaries; maximum-value; multi-currency batches</td></tr><tr><td><strong>Regulatory scenarios</strong></td><td>Above and below reporting thresholds; prohibited corridors; incomplete beneficiary data; high-risk jurisdictions</td></tr><tr><td><strong>Temporal data</strong></td><td>Weekend, holiday, market close, month end, and a leap day; rate-lock boundaries at 59/60/61 seconds</td></tr><tr><td><strong>Historical rate series</strong></td><td>For reproducing a specific past settlement exactly — required for audit rehearsal and for defect reproduction</td></tr></tbody></table></div><h3 id="2-managing-currency-specific-data">2. Managing currency-specific data</h3><p><strong>One source of truth, and it is not the tests.</strong> The currency matrix — decimals,
 minimums, cutoffs — is configuration the <em>service</em> already owns. Tests read the same
 configuration rather than duplicating it. Duplicating it guarantees the day where JPY&#39;s
 minimum changes in production, the tests keep passing against the old value, and QA is the
@@ -731,7 +731,7 @@ finance, which is a feature, not friction.</p>
 <p><strong>Anonymised, never copied.</strong> No production merchant or beneficiary data in any lower
 environment. Production-<em>shaped</em> data, synthetically generated: same distributions,
 volumes and edge cases, no real people.</p>
-<h3 id="s-3-fx-rate-testing-mocking-versus-real">3. FX rate testing — mocking versus real</h3><p>Neither alone works. Mocks are deterministic but can drift from reality; real providers
+<h3 id="3-fx-rate-testing--mocking-versus-real">3. FX rate testing — mocking versus real</h3><p>Neither alone works. Mocks are deterministic but can drift from reality; real providers
 are realistic but make assertions impossible, since the rate changes between the arrange
 and the assert. The answer is layered, and each layer is chosen for what it can actually
 prove.</p>
@@ -766,11 +766,12 @@ production monitoring as a first-class test environment — moves quality <em>to
 and away from a person at the end of the pipeline whose job is to catch things. With five
 engineers deploying daily, any strategy that depends on QA being the safety net fails on
 contact with the second sprint.</p>
-</section><section class="part"><h1 id="appendix-a-test-plan"><span class="eyebrow">Appendix A</span><span class="part-title">Test Plan</span></h1><p><strong>Application under test:</strong> <a href="https://demoqa.com/books">https://demoqa.com/books</a> (web) · <a href="https://demoqa.com/swagger">https://demoqa.com/swagger</a> (API)
+
+</section><section class="part"><h1 id="appendix-a--test-plan"><span class="eyebrow">Appendix A</span><span class="part-title">Test Plan</span></h1><p><strong>Application under test:</strong> <a href="https://demoqa.com/books">https://demoqa.com/books</a> (web) · <a href="https://demoqa.com/swagger">https://demoqa.com/swagger</a> (API)
 <strong>Author:</strong> Senior QA Engineer candidate · <strong>Date:</strong> 25 Aug 2025
-<strong>Status:</strong> Executed — results in <a href="#appendix-b-defects-found">defects.md</a></p>
+<strong>Status:</strong> Executed — results in <a href="#appendix-b--defects-found">Appendix B</a></p>
 <hr>
-<h2 id="s-1-what-we-are-testing-and-why">1. What we are testing and why</h2><p>The Book Store lets a person register, sign in, browse a catalogue of books, keep a
+<h2 id="1-what-we-are-testing-and-why">1. What we are testing and why</h2><p>The Book Store lets a person register, sign in, browse a catalogue of books, keep a
 personal collection, and sign out. The product&#39;s value sits in one place: <strong>a user&#39;s
 collection is correct and private</strong>. Everything else — layout, sorting, pagination — is
 secondary to that.</p>
@@ -786,14 +787,14 @@ thing that protects a collection from corruption.</li>
 <li><strong>Solving reCAPTCHA</strong> — see <em>Known constraints</em>.</li>
 </ul>
 <hr>
-<h2 id="s-2-risk-analysis-what-drives-coverage">2. Risk analysis — what drives coverage</h2><p>Coverage follows risk, not screen count. Probability and impact are scored from how the
+<h2 id="2-risk-analysis--what-drives-coverage">2. Risk analysis — what drives coverage</h2><p>Coverage follows risk, not screen count. Probability and impact are scored from how the
 system actually behaves, which is why several rows below already read &quot;Confirmed&quot; (see
-<a href="#appendix-b-defects-found">defects.md</a>).</p>
+<a href="#appendix-b--defects-found">Appendix B</a>).</p>
 <div class="tw"><table><thead><tr><th>#</th><th>Risk</th><th>Impact</th><th>Prob.</th><th>Priority</th><th>How it is covered</th></tr></thead><tbody><tr><td>R1</td><td>One user reads or modifies another user&#39;s collection</td><td>Critical</td><td>Low</td><td><strong>P0</strong></td><td><code>@security</code> scenarios: cross-token read, write, delete</td></tr><tr><td>R2</td><td>A book is added but not persisted (the UI lies)</td><td>High</td><td>Medium</td><td><strong>P0</strong></td><td>Cross-layer assertion: UI action, then API read-back</td></tr><tr><td>R3</td><td>Delete removes the wrong book, or does not persist</td><td>High</td><td>Medium</td><td><strong>P0</strong></td><td>Delete by ISBN, then API read-back; plus a cancel-path test</td></tr><tr><td>R4</td><td>Session does not end on logout</td><td>High</td><td>Low</td><td><strong>P0</strong></td><td>Post-logout access to <code>/profile</code> must be refused</td></tr><tr><td>R5</td><td>Failed authentication reported as success</td><td>High</td><td>Confirmed</td><td><strong>P0</strong></td><td>Negative auth scenarios (found <strong>BUG-006</strong>)</td></tr><tr><td>R6</td><td>Weak passwords accepted</td><td>Medium</td><td>Low</td><td><strong>P1</strong></td><td>Policy table plus an 8-character boundary scenario</td></tr><tr><td>R7</td><td>Duplicate add corrupts the collection</td><td>Medium</td><td>Medium</td><td><strong>P1</strong></td><td>Duplicate add → 1210, then state re-verified</td></tr><tr><td>R8</td><td>Concurrent sessions evict each other</td><td>Medium</td><td>Confirmed</td><td><strong>P1</strong></td><td>Documented as <strong>BUG-009</strong>; drove the suite&#39;s token design</td></tr><tr><td>R9</td><td>Search returns wrong or no results</td><td>Medium</td><td>Medium</td><td><strong>P1</strong></td><td>Exact, partial, no-match and case searches</td></tr><tr><td>R10</td><td>Catalogue payload changes shape</td><td>Medium</td><td>Medium</td><td><strong>P1</strong></td><td>Schema assertion on every catalogue entry</td></tr><tr><td>R11</td><td>Pagination or sorting wrong</td><td>Low</td><td>Medium</td><td><strong>P2</strong></td><td>Exploratory plus one automated check (found <strong>BUG-004</strong>)</td></tr><tr><td>R12</td><td>Cosmetic and responsive defects</td><td>Low</td><td>High</td><td><strong>P2</strong></td><td>Exploratory each release</td></tr></tbody></table></div><p><strong>The rule this produces:</strong> P0 is automated and gates every deployment. P1 is automated
 and runs on every pull request. P2 is exploratory, with selective automation once a
 defect is found twice.</p>
 <hr>
-<h2 id="s-3-test-approach-by-layer">3. Test approach by layer</h2><p>The same journey is covered at two layers, deliberately, because they answer different
+<h2 id="3-test-approach-by-layer">3. Test approach by layer</h2><p>The same journey is covered at two layers, deliberately, because they answer different
 questions.</p>
 <pre><code>        ┌───────────────────────────────────────────────┐
  few    │  E2E (Playwright)  register → … → logout      │  does the journey hold
@@ -810,9 +811,9 @@ authorisation, error codes), it runs roughly twenty times faster, and it does no
 when a class name changes. Every rule that <em>can</em> be tested there <em>is</em> tested there. The
 UI layer then only has to prove the journey works end to end — one E2E test, not thirty.</p>
 <h3 id="test-design-techniques-applied">Test design techniques applied</h3><div class="tw"><table><thead><tr><th>Technique</th><th>Where</th></tr></thead><tbody><tr><td>Equivalence partitioning</td><td>Password classes; ISBN valid / unknown / malformed</td></tr><tr><td>Boundary value analysis</td><td>Password at exactly 8 characters, and at 7</td></tr><tr><td>State transition</td><td>Collection: empty → one book → duplicate rejected → empty</td></tr><tr><td>Decision table</td><td>Auth outcomes: user exists × password correct × token present</td></tr><tr><td>Error guessing</td><td>Deleted account holding a live token; token replaced mid-session</td></tr><tr><td>Contract / schema testing</td><td>Every catalogue and collection payload</td></tr></tbody></table></div><hr>
-<h2 id="s-4-test-coverage">4. Test coverage</h2><h3 id="s-41-api-scenarios-automated-in-karate-23-scenarios-all-passing">4.1 API scenarios — automated in Karate (23 scenarios, all passing)</h3><div class="tw"><table><thead><tr><th>Endpoint</th><th>Positive</th><th>Negative and edge</th></tr></thead><tbody><tr><td><code>POST /Account/v1/User</code></td><td>201, empty collection, well-formed body</td><td>7 password-policy violations → 400/1300; duplicate user → 406/1204; 8-char boundary → 201</td></tr><tr><td><code>POST /Account/v1/GenerateToken</code></td><td>200, <code>Success</code>, token issued</td><td>Wrong password → <strong>200 + <code>Failed</code></strong> (BUG-006)</td></tr><tr><td><code>POST /Account/v1/Authorized</code></td><td><code>true</code> for valid credentials</td><td>Wrong password → 404/1207 (BUG-007)</td></tr><tr><td><code>GET /Account/v1/User/{id}</code></td><td>200, collection matches</td><td>No token → 401/1200; malformed token → 401; another user&#39;s id → 401; deleted account → 401/1207 (BUG-008)</td></tr><tr><td><code>DELETE /Account/v1/User/{id}</code></td><td>204, and the token dies with it</td><td>Another user&#39;s account → 401</td></tr><tr><td><code>GET /BookStore/v1/Books</code></td><td>200, schema, ISBNs unique</td><td>—</td></tr><tr><td><code>GET /BookStore/v1/Book?ISBN=</code></td><td>200, full schema</td><td>Unknown ISBN → 400/1205</td></tr><tr><td><code>POST /BookStore/v1/Books</code></td><td>201 for one book and for several</td><td>Duplicate → 400/1210 with state unchanged; no token → 401; another user&#39;s id → 401</td></tr><tr><td><code>PUT /BookStore/v1/Books/{ISBN}</code></td><td>200, old ISBN gone, new one present</td><td>—</td></tr><tr><td><code>DELETE /BookStore/v1/Book</code></td><td>204, removed</td><td>Book not owned → 400/1206</td></tr><tr><td><code>DELETE /BookStore/v1/Books?UserId=</code></td><td>204, collection emptied</td><td>—</td></tr></tbody></table></div><h3 id="s-42-web-scenarios-automated-in-playwright-7-tests-all-passing">4.2 Web scenarios — automated in Playwright (7 tests, all passing)</h3><div class="tw"><table><thead><tr><th>ID</th><th>Scenario</th><th>Tag</th></tr></thead><tbody><tr><td>W-01</td><td>Full journey: register → login → search → add → view → delete → logout</td><td><code>@e2e</code></td></tr><tr><td>W-02</td><td>Cancelling the delete dialog keeps the book (state seeded via API)</td><td><code>@regression</code></td></tr><tr><td>W-03</td><td>Unknown credentials → error shown, no session created</td><td><code>@smoke</code></td></tr><tr><td>W-04</td><td>Valid user, wrong password → rejected</td><td><code>@smoke</code></td></tr><tr><td>W-05</td><td><code>/profile</code> refuses anonymous access</td><td><code>@smoke</code></td></tr><tr><td>W-06</td><td>Registration form contract and reCAPTCHA present</td><td><code>@smoke</code></td></tr><tr><td>W-07</td><td>Password policy enforced (via API — the rule the form fronts)</td><td><code>@smoke</code></td></tr></tbody></table></div><p>W-01 additionally asserts that after each UI action the <strong>API agrees</strong> with what the
+<h2 id="4-test-coverage">4. Test coverage</h2><h3 id="41-api-scenarios--automated-in-karate-23-scenarios-all-passing">4.1 API scenarios — automated in Karate (23 scenarios, all passing)</h3><div class="tw"><table><thead><tr><th>Endpoint</th><th>Positive</th><th>Negative and edge</th></tr></thead><tbody><tr><td><code>POST /Account/v1/User</code></td><td>201, empty collection, well-formed body</td><td>7 password-policy violations → 400/1300; duplicate user → 406/1204; 8-char boundary → 201</td></tr><tr><td><code>POST /Account/v1/GenerateToken</code></td><td>200, <code>Success</code>, token issued</td><td>Wrong password → <strong>200 + <code>Failed</code></strong> (BUG-006)</td></tr><tr><td><code>POST /Account/v1/Authorized</code></td><td><code>true</code> for valid credentials</td><td>Wrong password → 404/1207 (BUG-007)</td></tr><tr><td><code>GET /Account/v1/User/{id}</code></td><td>200, collection matches</td><td>No token → 401/1200; malformed token → 401; another user&#39;s id → 401; deleted account → 401/1207 (BUG-008)</td></tr><tr><td><code>DELETE /Account/v1/User/{id}</code></td><td>204, and the token dies with it</td><td>Another user&#39;s account → 401</td></tr><tr><td><code>GET /BookStore/v1/Books</code></td><td>200, schema, ISBNs unique</td><td>—</td></tr><tr><td><code>GET /BookStore/v1/Book?ISBN=</code></td><td>200, full schema</td><td>Unknown ISBN → 400/1205</td></tr><tr><td><code>POST /BookStore/v1/Books</code></td><td>201 for one book and for several</td><td>Duplicate → 400/1210 with state unchanged; no token → 401; another user&#39;s id → 401</td></tr><tr><td><code>PUT /BookStore/v1/Books/{ISBN}</code></td><td>200, old ISBN gone, new one present</td><td>—</td></tr><tr><td><code>DELETE /BookStore/v1/Book</code></td><td>204, removed</td><td>Book not owned → 400/1206</td></tr><tr><td><code>DELETE /BookStore/v1/Books?UserId=</code></td><td>204, collection emptied</td><td>—</td></tr></tbody></table></div><h3 id="42-web-scenarios--automated-in-playwright-7-tests-all-passing">4.2 Web scenarios — automated in Playwright (7 tests, all passing)</h3><div class="tw"><table><thead><tr><th>ID</th><th>Scenario</th><th>Tag</th></tr></thead><tbody><tr><td>W-01</td><td>Full journey: register → login → search → add → view → delete → logout</td><td><code>@e2e</code></td></tr><tr><td>W-02</td><td>Cancelling the delete dialog keeps the book (state seeded via API)</td><td><code>@regression</code></td></tr><tr><td>W-03</td><td>Unknown credentials → error shown, no session created</td><td><code>@smoke</code></td></tr><tr><td>W-04</td><td>Valid user, wrong password → rejected</td><td><code>@smoke</code></td></tr><tr><td>W-05</td><td><code>/profile</code> refuses anonymous access</td><td><code>@smoke</code></td></tr><tr><td>W-06</td><td>Registration form contract and reCAPTCHA present</td><td><code>@smoke</code></td></tr><tr><td>W-07</td><td>Password policy enforced (via API — the rule the form fronts)</td><td><code>@smoke</code></td></tr></tbody></table></div><p>W-01 additionally asserts that after each UI action the <strong>API agrees</strong> with what the
 screen shows. That is the check which catches &quot;the UI said it saved, and it didn&#39;t&quot;.</p>
-<h3 id="s-43-manual-and-exploratory-each-release-time-boxed-to-90-minutes">4.3 Manual and exploratory — each release, time-boxed to 90 minutes</h3><p>Charters, not scripts:</p>
+<h3 id="43-manual-and-exploratory--each-release-time-boxed-to-90-minutes">4.3 Manual and exploratory — each release, time-boxed to 90 minutes</h3><p>Charters, not scripts:</p>
 <ul>
 <li>Catalogue sorting and pagination applied on top of a filtered search.</li>
 <li>Search behaviour: partial words, case, punctuation, ISBN, and the no-match empty state.</li>
@@ -822,15 +823,15 @@ screen shows. That is the check which catches &quot;the UI said it saved, and it
 problem here (BUG-001, BUG-002).</li>
 </ul>
 <hr>
-<h2 id="s-5-test-data-strategy">5. Test data strategy</h2><div class="tw"><table><thead><tr><th>Need</th><th>Approach</th></tr></thead><tbody><tr><td>User accounts</td><td>Generated per test (<code>qa_&lt;uuid&gt;</code>), created via API, deleted in teardown</td></tr><tr><td>Passwords</td><td>Meet the documented policy; violation cases live in a data table</td></tr><tr><td>Books</td><td>The seeded catalogue is read-only and stable; ISBNs referenced by constant</td></tr><tr><td>Collections</td><td>Seeded through the API whenever the test is not <em>about</em> adding a book</td></tr></tbody></table></div><p><strong>Nothing is shared between tests.</strong> The demo environment&#39;s user namespace is global and
+<h2 id="5-test-data-strategy">5. Test data strategy</h2><div class="tw"><table><thead><tr><th>Need</th><th>Approach</th></tr></thead><tbody><tr><td>User accounts</td><td>Generated per test (<code>qa_&lt;uuid&gt;</code>), created via API, deleted in teardown</td></tr><tr><td>Passwords</td><td>Meet the documented policy; violation cases live in a data table</td></tr><tr><td>Books</td><td>The seeded catalogue is read-only and stable; ISBNs referenced by constant</td></tr><tr><td>Collections</td><td>Seeded through the API whenever the test is not <em>about</em> adding a book</td></tr></tbody></table></div><p><strong>Nothing is shared between tests.</strong> The demo environment&#39;s user namespace is global and
 shared with strangers on the internet, so any fixed username eventually collides with
 <code>406 User exists!</code>. Isolation is what makes the suite parallel-safe, and the same
 principle applies to any shared staging environment.</p>
 <hr>
-<h2 id="s-6-environments">6. Environments</h2><div class="tw"><table><thead><tr><th>Environment</th><th>Purpose</th><th>Data</th><th>Suite</th></tr></thead><tbody><tr><td>Local</td><td>Developer feedback</td><td>Ephemeral</td><td><code>@smoke</code> on pre-push</td></tr><tr><td>CI (pull request)</td><td>The merge gate</td><td>Generated per run</td><td><code>@smoke</code> + <code>@e2e</code>, chromium</td></tr><tr><td>Staging</td><td>Release candidate</td><td>Anonymised, refreshed nightly</td><td>Full regression, three browsers</td></tr><tr><td>Production</td><td>Post-deploy confidence</td><td>Read-only synthetic account</td><td>Smoke only, non-destructive</td></tr></tbody></table></div><p><code>BASE_URL</code> (Playwright) and <code>karate.env</code> (Karate) are the only things that change between
+<h2 id="6-environments">6. Environments</h2><div class="tw"><table><thead><tr><th>Environment</th><th>Purpose</th><th>Data</th><th>Suite</th></tr></thead><tbody><tr><td>Local</td><td>Developer feedback</td><td>Ephemeral</td><td><code>@smoke</code> on pre-push</td></tr><tr><td>CI (pull request)</td><td>The merge gate</td><td>Generated per run</td><td><code>@smoke</code> + <code>@e2e</code>, chromium</td></tr><tr><td>Staging</td><td>Release candidate</td><td>Anonymised, refreshed nightly</td><td>Full regression, three browsers</td></tr><tr><td>Production</td><td>Post-deploy confidence</td><td>Read-only synthetic account</td><td>Smoke only, non-destructive</td></tr></tbody></table></div><p><code>BASE_URL</code> (Playwright) and <code>karate.env</code> (Karate) are the only things that change between
 them. There are no forks of the test code per environment.</p>
 <hr>
-<h2 id="s-7-entry-and-exit-criteria">7. Entry and exit criteria</h2><p><strong>Entry:</strong> the build deploys; the API answers a health check; test accounts can be
+<h2 id="7-entry-and-exit-criteria">7. Entry and exit criteria</h2><p><strong>Entry:</strong> the build deploys; the API answers a health check; test accounts can be
 created; the feature has acceptance criteria written down.</p>
 <p><strong>Exit:</strong></p>
 <ul>
@@ -841,16 +842,16 @@ created; the feature has acceptance criteria written down.</p>
 test with no owner is deleted coverage that nobody has admitted to.</li>
 </ul>
 <hr>
-<h2 id="s-8-reporting">8. Reporting</h2><ul>
+<h2 id="8-reporting">8. Reporting</h2><ul>
 <li><strong>Per run:</strong> Playwright HTML report with traces, and the Karate HTML summary, both
 published as CI artefacts — a failure should be diagnosable from the build alone,
 without anyone re-running it locally.</li>
 <li><strong>Per release:</strong> one page. What was covered, what was found, what is still risky.</li>
 <li><strong>Defects:</strong> logged with steps, expected versus actual, evidence and environment.
-<a href="#appendix-b-defects-found">defects.md</a> shows the format used here.</li>
+<a href="#appendix-b--defects-found">Appendix B</a> shows the format used here.</li>
 </ul>
 <hr>
-<h2 id="s-9-known-constraints">9. Known constraints</h2><p><strong>Registration is behind Google reCAPTCHA.</strong> It cannot be driven from an automated
+<h2 id="9-known-constraints">9. Known constraints</h2><p><strong>Registration is behind Google reCAPTCHA.</strong> It cannot be driven from an automated
 browser, and defeating it would only work against this demo site — a test that passes by
 cheating gives false confidence. Two consequences:</p>
 <ol>
@@ -868,53 +869,54 @@ the browser&#39;s own session token rather than minting a competing one.</p>
 <p><strong>Third-party ads intercept clicks.</strong> The suite removes ad containers after navigation.
 On a product I owned this would be environment configuration instead — tests should not
 have to fight the page they are testing.</p>
-</section><section class="part"><h1 id="appendix-b-defects-found"><span class="eyebrow">Appendix B</span><span class="part-title">Defects Found</span></h1><p>Every item below was reproduced against the live application on 2025-08-25 while
+
+</section><section class="part"><h1 id="appendix-b--defects-found"><span class="eyebrow">Appendix B</span><span class="part-title">Defects Found</span></h1><p>Every item below was reproduced against the live application on 2025-08-25 while
 writing the suites. Each one is either encoded in a test or explains why a test is
 written the way it is.</p>
-<h2 id="web-ui">Web UI</h2><h3 id="bug-001-three-different-buttons-share-id-and-quotsubmit-and-quot-on-profile">BUG-001 — Three different buttons share <code>id=&quot;submit&quot;</code> on /profile</h3><p><strong>Severity:</strong> Medium (accessibility + automatability)
+<h2 id="web-ui">Web UI</h2><h3 id="bug-001--three-different-buttons-share-idquotsubmitquot-on-profile">BUG-001 — Three different buttons share <code>id=&quot;submit&quot;</code> on /profile</h3><p><strong>Severity:</strong> Medium (accessibility + automatability)
 <strong>Steps:</strong> Log in → open <code>/profile</code> → inspect the DOM.
 <strong>Actual:</strong> <em>Logout</em>, <em>Delete Account</em> and <em>Delete All Books</em> all render <code>id=&quot;submit&quot;</code>.
 <strong>Expected:</strong> Ids are unique per document (HTML spec).
 <strong>Why it matters:</strong> Duplicate ids break <code>document.getElementById</code>, break screen-reader
 label association, and force every automated test to fall back to text matching. It is
 a one-line fix that removes a whole class of future flakiness.</p>
-<h3 id="bug-002-two-buttons-share-id-and-quotaddnewrecordbutton-and-quot-on-the-book-detail-page">BUG-002 — Two buttons share <code>id=&quot;addNewRecordButton&quot;</code> on the book detail page</h3><p><strong>Severity:</strong> Medium
+<h3 id="bug-002--two-buttons-share-idquotaddnewrecordbuttonquot-on-the-book-detail-page">BUG-002 — Two buttons share <code>id=&quot;addNewRecordButton&quot;</code> on the book detail page</h3><p><strong>Severity:</strong> Medium
 <strong>Actual:</strong> <em>Back To Book Store</em> and <em>Add To Your Collection</em> carry the same id, so
 <code>#addNewRecordButton</code> resolves to whichever comes first in the DOM — a test written
 against it would silently click the wrong control.</p>
-<h3 id="bug-003-and-quotdelete-all-books-and-quot-is-rendered-twice-on-profile">BUG-003 — &quot;Delete All Books&quot; is rendered twice on /profile</h3><p><strong>Severity:</strong> Low
+<h3 id="bug-003--quotdelete-all-booksquot-is-rendered-twice-on-profile">BUG-003 — &quot;Delete All Books&quot; is rendered twice on /profile</h3><p><strong>Severity:</strong> Low
 <strong>Actual:</strong> The profile page renders two identical <em>Delete All Books</em> buttons.
 <strong>Expected:</strong> One. A duplicated destructive action is a genuine usability risk.</p>
-<h3 id="bug-004-empty-collection-paginates-as-and-quotpage-1-of-0-and-quot">BUG-004 — Empty collection paginates as &quot;Page 1 of 0&quot;</h3><p><strong>Severity:</strong> Low
+<h3 id="bug-004--empty-collection-paginates-as-quotpage-1-of-0quot">BUG-004 — Empty collection paginates as &quot;Page 1 of 0&quot;</h3><p><strong>Severity:</strong> Low
 <strong>Steps:</strong> Log in with an empty collection, or delete the last book.
 <strong>Actual:</strong> The pager reads <code>Page 1 of 0</code>.
 <strong>Expected:</strong> <code>Page 0 of 0</code>, or the pager is hidden when there is nothing to page.</p>
-<h3 id="bug-005-profile-briefly-renders-its-logged-out-panel-after-a-successful-login">BUG-005 — /profile briefly renders its logged-out panel after a successful login</h3><p><strong>Severity:</strong> Low (perceived quality), High (as a source of test flakiness)
+<h3 id="bug-005--profile-briefly-renders-its-logged-out-panel-after-a-successful-login">BUG-005 — /profile briefly renders its logged-out panel after a successful login</h3><p><strong>Severity:</strong> Low (perceived quality), High (as a source of test flakiness)
 <strong>Steps:</strong> Submit valid credentials on <code>/login</code>.
 <strong>Actual:</strong> The browser lands on <code>/profile</code> and, for a few hundred milliseconds, shows
 the &quot;Login in Book Store&quot; panel before the authenticated view replaces it.
 <strong>Impact:</strong> Any test — or user — that reacts to the first paint sees the wrong state.
 The suite works around it by waiting on <code>#userName-value</code>, not on the URL.</p>
-<h3 id="obs-001-logout-is-labelled-and-quotlogout-and-quot-on-profile-and-and-quotlog-out-and-quot-on-the-book-detail-page">OBS-001 — Logout is labelled &quot;Logout&quot; on /profile and &quot;Log out&quot; on the book detail page</h3><p>Cosmetic inconsistency; the suite matches <code>/log ?out/i</code> rather than either literal.</p>
-<h2 id="api">API</h2><h3 id="bug-006-failed-authentication-returns-200-ok">BUG-006 — Failed authentication returns <code>200 OK</code></h3><p><strong>Severity:</strong> High (contract correctness)
+<h3 id="obs-001--logout-is-labelled-quotlogoutquot-on-profile-and-quotlog-outquot-on-the-book-detail-page">OBS-001 — Logout is labelled &quot;Logout&quot; on /profile and &quot;Log out&quot; on the book detail page</h3><p>Cosmetic inconsistency; the suite matches <code>/log ?out/i</code> rather than either literal.</p>
+<h2 id="api">API</h2><h3 id="bug-006--failed-authentication-returns-200-ok">BUG-006 — Failed authentication returns <code>200 OK</code></h3><p><strong>Severity:</strong> High (contract correctness)
 <strong>Request:</strong> <code>POST /Account/v1/GenerateToken</code> with a valid username and a wrong password.
 <strong>Actual:</strong> <code>200 OK</code> with <code>{&quot;token&quot;:null,&quot;expires&quot;:null,&quot;status&quot;:&quot;Failed&quot;,&quot;result&quot;:&quot;User authorization failed.&quot;}</code>
 <strong>Expected:</strong> <code>401 Unauthorized</code>.
 <strong>Why it matters:</strong> Every generated client, gateway, retry policy and alerting rule keys
 off the status code. A failed credential check that reports success is invisible to
 monitoring, and a client that only checks <code>res.ok</code> will happily proceed with a null token.</p>
-<h3 id="bug-007-wrong-password-reported-as-and-quotuser-not-found-and-quot">BUG-007 — Wrong password reported as &quot;User not found&quot;</h3><p><strong>Severity:</strong> Medium
+<h3 id="bug-007--wrong-password-reported-as-quotuser-not-foundquot">BUG-007 — Wrong password reported as &quot;User not found&quot;</h3><p><strong>Severity:</strong> Medium
 <strong>Request:</strong> <code>POST /Account/v1/Authorized</code> with an existing username and a wrong password.
 <strong>Actual:</strong> <code>404</code> with <code>{&quot;code&quot;:&quot;1207&quot;,&quot;message&quot;:&quot;User not found!&quot;}</code>
 <strong>Expected:</strong> <code>401</code> with a credential-failure code. The user exists; the password does not
 match. Reporting 404 misleads clients and support alike.</p>
-<h3 id="bug-008-http-status-and-error-code-disagree">BUG-008 — HTTP status and error code disagree</h3><p><strong>Severity:</strong> Medium
+<h3 id="bug-008--http-status-and-error-code-disagree">BUG-008 — HTTP status and error code disagree</h3><p><strong>Severity:</strong> Medium
 <strong>Request:</strong> <code>GET /Account/v1/User/{id}</code> for a deleted account, with that account&#39;s token.
 <strong>Actual:</strong> HTTP <code>401</code> carrying <code>{&quot;code&quot;:&quot;1207&quot;,&quot;message&quot;:&quot;User not found!&quot;}</code> — the same
 error code that <code>/Authorized</code> pairs with HTTP <code>404</code>.
 <strong>Expected:</strong> One code, one status, consistently. As it stands a client cannot map error
 codes to statuses reliably.</p>
-<h3 id="bug-009-generating-a-token-silently-invalidates-the-existing-session">BUG-009 — Generating a token silently invalidates the existing session</h3><p><strong>Severity:</strong> High (undocumented behaviour with real product impact)
+<h3 id="bug-009--generating-a-token-silently-invalidates-the-existing-session">BUG-009 — Generating a token silently invalidates the existing session</h3><p><strong>Severity:</strong> High (undocumented behaviour with real product impact)
 <strong>Steps:</strong> Log in through the UI, then call <code>POST /Account/v1/GenerateToken</code> for the same
 user. Every subsequent request from the browser session returns <code>401</code>.
 <strong>Actual:</strong> The back end keeps one valid token per user; a new token kills the old one.
@@ -923,9 +925,9 @@ not an edge case), or the single-session rule is documented and the evicted sess
 told why. This is not visible in the Swagger contract at all.
 <strong>Impact on the suite:</strong> cross-layer assertions reuse the browser&#39;s own session cookie
 instead of minting a second token — see <code>sessionTokenFromBrowser()</code>.</p>
-<h3 id="obs-002-accountv1authorized-returns-a-bare-json-primitive">OBS-002 — <code>/Account/v1/Authorized</code> returns a bare JSON primitive</h3><p>Responds with <code>true</code> rather than an object such as <code>{&quot;authorized&quot;: true}</code>. Legal JSON,
+<h3 id="obs-002--accountv1authorized-returns-a-bare-json-primitive">OBS-002 — <code>/Account/v1/Authorized</code> returns a bare JSON primitive</h3><p>Responds with <code>true</code> rather than an object such as <code>{&quot;authorized&quot;: true}</code>. Legal JSON,
 but awkward for typed clients and impossible to extend without a breaking change.</p>
-<h3 id="pass-object-level-authorisation-is-correctly-enforced">PASS — Object-level authorisation is correctly enforced</h3><p>Worth recording as a <em>positive</em> result, because it is the flaw this API&#39;s shape invites:
+<h3 id="pass--object-level-authorisation-is-correctly-enforced">PASS — Object-level authorisation is correctly enforced</h3><p>Worth recording as a <em>positive</em> result, because it is the flaw this API&#39;s shape invites:
 the <code>userId</code> travels in the request body, so a naive implementation would trust it. It
 does not. With user A&#39;s token:</p>
 <ul>

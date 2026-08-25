@@ -12,7 +12,7 @@ export interface TestUser {
  * It exists for *test data management*, not for assertions: creating and tearing
  * down users through the API keeps UI tests focused on the behaviour they own and
  * removes the reCAPTCHA-protected registration form from the critical path.
- * (See docs/test-plan.md ("Registration & reCAPTCHA") for the rationale.)
+ * (See Senior_QA_Engineer_Assessment.md, Appendix A -> "Known constraints", for the rationale.)
  */
 export class ApiClient {
   private constructor(private readonly ctx: APIRequestContext) {}
@@ -96,7 +96,7 @@ export class ApiClient {
  * `GenerateToken` again invalidates the one the UI session holds, which silently
  * logs the browser out mid-test. Cross-layer assertions therefore reuse the
  * session the UI already established instead of minting a competing one.
- * (See docs/defects.md BUG-009.)
+ * (See Senior_QA_Engineer_Assessment.md, Appendix B: BUG-009.)
  */
 export async function sessionTokenFromBrowser(context: import('@playwright/test').BrowserContext): Promise<string> {
   const cookie = (await context.cookies()).find((c) => c.name === 'token');

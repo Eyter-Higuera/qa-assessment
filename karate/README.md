@@ -32,7 +32,7 @@ catches a field that changed type or disappeared — the failures that spot-chec
 **Current behaviour is asserted, wrong behaviour is flagged.** Where the API is
 inconsistent (`GenerateToken` answering `200 / status:"Failed"` for bad credentials,
 a `401` carrying a `1207 User not found!` body), the test locks the behaviour that ships
-today and a comment points at the defect in `docs/defects.md`. Tests that assert what
+today and a comment points at the defect in Appendix B of `Senior_QA_Engineer_Assessment.md`. Tests that assert what
 the API *ought* to do would be red every day and would stop being read.
 
 **"Logout" is modelled as end-of-session.** The API exposes no logout endpoint, so the

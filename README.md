@@ -1,31 +1,38 @@
-# Book Store QA Automation
+# Senior QA Engineer — Assessment
 
-Automation for the [demoqa.com Book Store](https://demoqa.com/books) application, covering
-the same journey at two layers:
+Written submission and working automation for the
+[demoqa.com Book Store](https://demoqa.com/books) application.
 
-| Layer | Tool | Location |
-|---|---|---|
-| Web UI | Playwright + TypeScript | [`web-playwright/`](web-playwright/) |
-| REST API | Karate (Java) | [`api-karate/`](api-karate/) |
+## The submission
+
+| Deliverable | Where |
+|---|---|
+| **Written document** — all questions, Parts 1–3, plus test plan and defect log | [Senior_QA_Engineer_Assessment.md](Senior_QA_Engineer_Assessment.md) |
+| Same document, formatted — open in a browser, print to PDF | [docs/assessment.html](docs/assessment.html) |
+| Web automation (Playwright + TypeScript) | [`playwright/`](playwright/) |
+| API automation (Karate + Java) | [`karate/`](karate/) |
 
 **The automated flow:** register → login → search & add a book → view the collection →
-delete the book → logout.
+delete the book → logout. Automated at both layers.
 
-## Documents
+## Test results
 
-| Document | What it covers |
-|---|---|
-| [docs/test-plan.md](docs/test-plan.md) | Test plan for the Book Store application (Task A) |
-| [docs/defects.md](docs/defects.md) | Defects found while building the suite — with evidence |
-| [docs/qa-assessment.md](docs/qa-assessment.md) | Written answers: QA strategy, mentoring, multi-currency settlement |
-| [docs/assessment.html](docs/assessment.html) | All of the above as one formatted document — open in a browser, print to PDF |
+Both suites were executed against the live site while this repository was written.
+
+```
+Playwright   7 passed (chromium)
+Karate      23 scenarios passed, 0 failed
+```
+
+Building them surfaced **11 defects and observations** in the application under test,
+documented with reproduction steps in Appendix B of the assessment document.
 
 ## Running the tests
 
 ### Web (Playwright)
 
 ```bash
-cd web-playwright
+cd playwright
 npm ci
 npx playwright install chromium
 npm test                    # full suite, chromium
@@ -39,26 +46,27 @@ Override the target environment with `BASE_URL=https://staging.example.com npm t
 ### API (Karate)
 
 ```bash
-cd api-karate
+cd karate
 mvn test -Dtest=BookStoreApiTest    # full suite
 mvn test -Dtest=SmokeTest           # @smoke only
 mvn test -Dkarate.env=staging       # point at another environment
 ```
 
-Reports land in `api-karate/target/karate-reports/karate-summary.html`.
+Reports land in `karate/target/karate-reports/karate-summary.html`.
 
-## Test results
-
-Both suites were executed against the live site while this repository was written.
+## Repository layout
 
 ```
-Playwright   7 passed (chromium)
-Karate      23 scenarios passed, 0 failed
+Senior_QA_Engineer_Assessment.md   the written submission
+docs/assessment.html               the same document, formatted for reading and print
+playwright/                        web automation — page objects, fixtures, specs
+karate/                            API automation — feature files and JUnit runners
+.github/workflows/ci.yml           smoke on every PR, full regression nightly
 ```
 
 ## How the suites are put together
 
-* **Page objects** (`web-playwright/src/pages/`) hold every selector; specs read as user
+* **Page objects** (`playwright/src/pages/`) hold every selector; specs read as user
   journeys, so a UI change is a one-file fix.
 * **Unique account per test.** The Book Store user namespace is global and shared with
   everyone else using the demo site, so a fixed username would eventually collide.
@@ -69,6 +77,6 @@ Karate      23 scenarios passed, 0 failed
 * **Registration is provisioned over the API.** The UI form is protected by Google
   reCAPTCHA. Bypassing it would only work against this demo site and would give false
   confidence, so the UI suite asserts the form's contract and the happy path runs
-  through the API. See [docs/test-plan.md](docs/test-plan.md) → *Known constraints*.
+  through the API. See Appendix A → *Known constraints*.
 * **No `waitForTimeout`.** Every wait is an assertion on a condition (`toBeVisible`,
   `toHaveText`), which is what keeps the suite honest and fast.

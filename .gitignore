@@ -1,9 +1,9 @@
 # Node / Playwright
 node_modules/
-web-playwright/test-results/
-web-playwright/playwright-report/
-web-playwright/blob-report/
-web-playwright/.env
+playwright/test-results/
+playwright/playwright-report/
+playwright/blob-report/
+playwright/.env
 
 # Java / Karate
 target/

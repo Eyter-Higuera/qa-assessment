@@ -30,7 +30,8 @@ export const test = base.extend<Fixtures>({
    * solved by an automated browser and must not be bypassed with hacks that only
    * work against the demo site. Registration is therefore performed against the
    * public API - the same account the user would have got from the form - and the
-   * UI test starts from login. See docs/test-plan.md, section "Known constraints".
+   * UI test starts from login. See Senior_QA_Engineer_Assessment.md,
+   * Appendix A -> "Known constraints".
    */
   user: async ({ api }, use) => {
     const { userName, password } = uniqueUser();

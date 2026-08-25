@@ -29,7 +29,7 @@ points at the exact stage.
 
 **Locators follow what the user sees.** The app reuses `id="submit"` for three
 different buttons and `id="addNewRecordButton"` for two, so ids alone are ambiguous
-(see `docs/defects.md`). Buttons are addressed by role + accessible name, which is
+(see Appendix B of `Senior_QA_Engineer_Assessment.md`). Buttons are addressed by role + accessible name, which is
 both unambiguous and closer to how a person uses the page.
 
 **Ads are stripped after navigation.** demoqa serves third-party ad frames that float
