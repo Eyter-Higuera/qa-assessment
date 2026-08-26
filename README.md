@@ -179,8 +179,15 @@ reaches.
 from `main` — there is nowhere further to promote to. Entering at stage 3 deploys
 either way: running this workflow from `main` is a deployment, not a dry run.
 
+Stage 3 verifies with the suite you selected. A manual run choosing `regression`
+runs the regression suite against production after deploying; anything automated —
+a push, or a promotion that reached production on its own — confirms the deployment
+with `smoke` rather than re-testing the build. Worth knowing before selecting it:
+the regression suite registers users and creates data, so on a real production host
+it is not a read-only check.
+
 A final `Pipeline result` job asserts that a deployment was actually verified. If
-production was deployed and the smoke suite did not pass — failed, or skipped for
+production was deployed and its verification did not pass — failed, or skipped for
 any reason — the run goes red. Without it a deploy whose verification never ran
 reports green, which is the one way this pipeline can lie to you.
 

@@ -35,7 +35,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-      - name: Run Karate suite
+      - name: Run Karate ${{ inputs.suite }} suite
         working-directory: karate
         # Karate selects its tag set through the runner class: anything that is
         # not 'smoke' runs the whole suite.
@@ -52,7 +52,7 @@ jobs:
           retention-days: 14
 
   ui:
-    name: Web (Playwright) - ${{ inputs.environment }} - ${{ matrix.browser }}
+    name: Web (Playwright) - ${{ inputs.environment }} - ${{ inputs.suite }} - ${{ matrix.browser }}
     # The web suite exercises the same back end; no point burning runner minutes
     # on browsers if the API contract is already broken.
     needs: api
@@ -82,7 +82,7 @@ jobs:
         # Edge is a branded channel rather than a bundled engine, so the command
         # above does not fetch it - it has to be requested by name.
         run: npx playwright install --with-deps msedge
-      - name: Run Playwright suite
+      - name: Run Playwright ${{ inputs.suite }} suite
         working-directory: playwright
         env:
           BASE_URL: ${{ inputs.base_url }}

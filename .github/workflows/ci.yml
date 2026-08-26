@@ -109,6 +109,7 @@ jobs:
       release_suite: ${{ steps.resolve.outputs.release_suite }}
       release_browsers: ${{ steps.resolve.outputs.release_browsers }}
       run_chain: ${{ steps.resolve.outputs.run_chain }}
+      production_suite: ${{ steps.resolve.outputs.production_suite }}
     steps:
       - name: Resolve entry point, suites, browsers and promotion
         id: resolve
@@ -177,6 +178,15 @@ jobs:
               ;;
           esac
 
+          # What stage 3 runs against production. A manual run verifies with the
+          # suite the operator picked; anything automated confirms the deployment
+          # with smoke rather than re-testing the build.
+          if [ "$EVENT_NAME" = workflow_dispatch ]; then
+            PRODUCTION_SUITE="$INPUT_TEST_SUITE"
+          else
+            PRODUCTION_SUITE=smoke
+          fi
+
           {
             echo "start_stage=$START_STAGE"
             echo "dev_base_url=$DEV_BASE_URL"
@@ -187,6 +197,7 @@ jobs:
             echo "release_suite=$RELEASE_SUITE"
             echo "release_browsers=$(json_browsers "$RELEASE_BROWSER")"
             echo "run_chain=$RUN_CHAIN"
+            echo "production_suite=$PRODUCTION_SUITE"
           } >> "$GITHUB_OUTPUT"
 
           # --- render what this run will actually do -------------------------
@@ -220,7 +231,7 @@ jobs:
             echo "|---|---|"
             row 1 "1. dev" "$SUITE on $(json_browsers "$BROWSER") - $DEV_BASE_URL"
             row 2 "2. release" "$RELEASE_SUITE on $(json_browsers "$RELEASE_BROWSER") - $RELEASE_BASE_URL"
-            row 3 "3. production" "deploy, then smoke - $PRODUCTION_BASE_URL"
+            row 3 "3. production" "deploy, then $PRODUCTION_SUITE - $PRODUCTION_BASE_URL"
           } >> "$GITHUB_STEP_SUMMARY"
 
   # ---------------------------------------------------------------------------
@@ -342,8 +353,8 @@ jobs:
           # Replace with the real deployment command, for example:
           #   ./scripts/deploy.sh production "${{ github.sha }}"
 
-  production-smoke:
-    name: 3b. Production smoke
+  production-verify:
+    name: 3b. Production ${{ needs.config.outputs.production_suite }}
     needs: [config, deploy-production]
     # Relying on the implicit needs-semantics here silently skipped this job:
     # entering from main leaves promote-to-main skipped, and that skipped state
@@ -357,28 +368,29 @@ jobs:
     with:
       environment: production
       base_url: ${{ needs.config.outputs.production_base_url }}
-      # Always smoke: this confirms the deployment, it does not re-test the build.
-      suite: smoke
+      # Whatever the operator selected; smoke for automated runs.
+      suite: ${{ needs.config.outputs.production_suite }}
       browsers: ${{ needs.config.outputs.browsers }}
 
   # ---------------------------------------------------------------------------
   # A run that deployed and then skipped its verification used to finish green in
   # seventeen seconds. This job exists so that cannot happen again: if production
-  # was deployed, the smoke suite must have passed for the run to succeed.
+  # was deployed, its verification must have passed for the run to succeed.
   # ---------------------------------------------------------------------------
   pipeline-result:
     name: Pipeline result
-    needs: [config, deploy-production, production-smoke]
+    needs: [config, deploy-production, production-verify]
     if: always() && needs.deploy-production.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: A deployment must be verified
         env:
-          SMOKE: ${{ needs.production-smoke.result }}
+          VERIFY: ${{ needs.production-verify.result }}
+          SUITE: ${{ needs.config.outputs.production_suite }}
         run: |
           set -euo pipefail
-          if [ "$SMOKE" != success ]; then
-            echo "::error title=Production deployed but not verified::The smoke           suite finished as '$SMOKE' rather than success. Failing the run so this           does not read as a clean deployment."
+          if [ "$VERIFY" != success ]; then
+            echo "::error title=Production deployed but not verified::The $SUITE suite finished as '$VERIFY', not success."
             exit 1
           fi
-          echo "Production deployed and verified by the smoke suite."
+          echo "Production deployed and verified by the $SUITE suite."
