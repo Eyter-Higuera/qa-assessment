@@ -1,22 +1,29 @@
 name: QA Automation
 
-# The whole promotion chain is ONE workflow run, wired with `needs:`:
+# The promotion chain is ONE workflow run, wired with `needs:`:
 #
 #   config
-#     -> dev tests            (eyter_dev -> dev environment)
+#     -> 1. dev tests         (eyter_dev -> dev environment)
 #       -> promote to release
-#         -> release tests    (release -> release environment)
+#         -> 2. release tests (release -> release environment)
 #           -> promote to main
-#             -> deploy production
+#             -> 3. deploy production
 #               -> production smoke
 #
-# Every arrow is a `needs:`, so GitHub renders one ordered graph and a stage
-# physically cannot start until the stage before it is green.
+# The branch you run from picks the ENTRY POINT, and the run continues from
+# there: eyter_dev enters at stage 1, release at stage 2, main at stage 3.
+# Stages before the entry point are skipped, and the order of everything after
+# it is unchanged.
+#
+# Because a skipped job normally skips everything that needs it, the stages that
+# can be entered directly test `needs.<previous>.result` explicitly instead of
+# relying on the default needs-semantics. That is what lets stage 2 run on its
+# own when the promotion before it never happened.
 #
 # `release` and `main` are deliberately NOT push triggers. They used to be, and
 # that is what made the stages race: pushing two branches starts two independent
-# runs, and each promotion push started a third. Promotion now advances the chain
-# through `needs:` and the branch push is only the record of what passed.
+# runs, and each promotion push started a third. Enter those stages by running
+# the workflow manually from that branch.
 
 on:
   push:
@@ -45,7 +52,7 @@ on:
           - msedge
           - all
       promote:
-        description: 'Continue through release to production if each stage passes'
+        description: 'Promote onward from this branch (and deploy, when run from main)'
         type: boolean
         default: false
 
@@ -60,13 +67,14 @@ permissions:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # One place decides which suite and browsers each stage runs, and whether this
-  # run advances past the first stage at all.
+  # One place decides where the run starts, what each stage runs, and whether
+  # this run is allowed to move a branch or deploy.
   # ---------------------------------------------------------------------------
   config:
     name: Resolve run configuration
     runs-on: ubuntu-latest
     outputs:
+      start_stage: ${{ steps.resolve.outputs.start_stage }}
       dev_base_url: ${{ steps.resolve.outputs.dev_base_url }}
       release_base_url: ${{ steps.resolve.outputs.release_base_url }}
       production_base_url: ${{ steps.resolve.outputs.production_base_url }}
@@ -76,7 +84,7 @@ jobs:
       release_browsers: ${{ steps.resolve.outputs.release_browsers }}
       run_chain: ${{ steps.resolve.outputs.run_chain }}
     steps:
-      - name: Resolve suites, browsers and whether this run promotes
+      - name: Resolve entry point, suites, browsers and promotion
         id: resolve
         env:
           # Point these repository variables at the real hosts; the public demo
@@ -85,6 +93,7 @@ jobs:
           RELEASE_BASE_URL: ${{ vars.RELEASE_BASE_URL || 'https://demoqa.com' }}
           PRODUCTION_BASE_URL: ${{ vars.PRODUCTION_BASE_URL || 'https://demoqa.com' }}
           EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
           INPUT_TEST_SUITE: ${{ inputs.test_suite }}
           INPUT_BROWSER: ${{ inputs.browser }}
           INPUT_PROMOTE: ${{ inputs.promote }}
@@ -99,31 +108,43 @@ jobs:
             fi
           }
 
+          # --- the branch picks the entry point ------------------------------
+          case "$REF_NAME" in
+            eyter_dev) START_STAGE=dev ;;
+            release)   START_STAGE=release ;;
+            main)      START_STAGE=production ;;
+            # Feature branches are exercised against dev, like eyter_dev.
+            *)         START_STAGE=dev ;;
+          esac
+
           case "$EVENT_NAME" in
             push)
-              # A push to eyter_dev runs the chain end to end. Coverage widens as
-              # the commit approaches production: one browser on the development
+              # Only eyter_dev is a push trigger, so this always enters at
+              # stage 1 and runs the chain end to end. Coverage widens as the
+              # commit approaches production: one browser on the development
               # gate to keep it fast, all four before production.
               SUITE=full;  BROWSER=chromium
               RELEASE_SUITE=full; RELEASE_BROWSER=all
               RUN_CHAIN=true
               ;;
             workflow_dispatch)
-              # The operator's choice applies to both test stages, so what the
-              # release stage runs is what they asked for, not a hidden default.
+              # The operator's choice applies to whichever stage they enter at,
+              # so what runs is what they asked for, not a hidden default.
               SUITE="$INPUT_TEST_SUITE";  BROWSER="$INPUT_BROWSER"
               RELEASE_SUITE="$INPUT_TEST_SUITE"; RELEASE_BROWSER="$INPUT_BROWSER"
-              # Unticked, the run stops after the dev stage: re-running a suite to
-              # check something must never move a branch or reach production.
+              # Unticked, the run tests its entry stage and stops: re-running a
+              # suite to check something must never move a branch or deploy.
               RUN_CHAIN="$INPUT_PROMOTE"
               ;;
             schedule)
+              START_STAGE=dev
               SUITE=full;  BROWSER=all
               RELEASE_SUITE=full; RELEASE_BROWSER=all
               RUN_CHAIN=false
               ;;
             *)
-              # pull_request: fast gate only.
+              # pull_request: fast gate on dev only.
+              START_STAGE=dev
               SUITE=smoke; BROWSER=chromium
               RELEASE_SUITE=smoke; RELEASE_BROWSER=chromium
               RUN_CHAIN=false
@@ -131,6 +152,7 @@ jobs:
           esac
 
           {
+            echo "start_stage=$START_STAGE"
             echo "dev_base_url=$DEV_BASE_URL"
             echo "release_base_url=$RELEASE_BASE_URL"
             echo "production_base_url=$PRODUCTION_BASE_URL"
@@ -141,27 +163,55 @@ jobs:
             echo "run_chain=$RUN_CHAIN"
           } >> "$GITHUB_OUTPUT"
 
+          # --- render what this run will actually do -------------------------
+          case "$START_STAGE" in
+            dev) START_IDX=1 ;; release) START_IDX=2 ;; production) START_IDX=3 ;;
+          esac
+
+          row() {
+            # $1 stage number, $2 label, $3 what that stage runs
+            if [ "$1" -lt "$START_IDX" ]; then
+              echo "| $2 | skipped - before the entry point |"
+            elif [ "$1" -eq "$START_IDX" ]; then
+              echo "| $2 | **entry point** - $3 |"
+            elif [ "$RUN_CHAIN" = true ]; then
+              echo "| $2 | $3 |"
+            else
+              echo "| $2 | skipped - promotion is off |"
+            fi
+          }
+
+          # Entering at production without ticking promote verifies the live site
+          # and deliberately deploys nothing.
+          if [ "$START_STAGE" = production ] && [ "$RUN_CHAIN" != true ]; then
+            PRODUCTION_DESC="smoke only, no deploy - $PRODUCTION_BASE_URL"
+          else
+            PRODUCTION_DESC="deploy, then smoke - $PRODUCTION_BASE_URL"
+          fi
+
           {
             echo "### Run configuration"
             echo ""
+            echo "Triggered by \`$EVENT_NAME\` on \`$REF_NAME\`, entering at **$START_STAGE**."
+            if [ "$RUN_CHAIN" != true ]; then
+              echo ""
+              echo "Promotion is off: this run tests its entry stage and stops."
+            fi
+            echo ""
             echo "| Stage | Runs |"
             echo "|---|---|"
-            echo "| 1. dev | $SUITE on $(json_browsers "$BROWSER") - $DEV_BASE_URL |"
-            if [ "$RUN_CHAIN" = true ]; then
-              echo "| 2. release | $RELEASE_SUITE on $(json_browsers "$RELEASE_BROWSER") - $RELEASE_BASE_URL |"
-              echo "| 3. production | deploy, then smoke - $PRODUCTION_BASE_URL |"
-            else
-              echo "| 2. release | skipped - this run does not promote |"
-              echo "| 3. production | skipped - this run does not promote |"
-            fi
+            row 1 "1. dev" "$SUITE on $(json_browsers "$BROWSER") - $DEV_BASE_URL"
+            row 2 "2. release" "$RELEASE_SUITE on $(json_browsers "$RELEASE_BROWSER") - $RELEASE_BASE_URL"
+            row 3 "3. production" "$PRODUCTION_DESC"
           } >> "$GITHUB_STEP_SUMMARY"
 
   # ---------------------------------------------------------------------------
-  # Stage 1 - dev. Always runs.
+  # Stage 1 - dev. The entry point for eyter_dev, feature branches and PRs.
   # ---------------------------------------------------------------------------
   dev-tests:
     name: 1. Dev
     needs: config
+    if: needs.config.outputs.start_stage == 'dev'
     uses: ./.github/workflows/test-stage.yml
     with:
       environment: dev
@@ -172,9 +222,11 @@ jobs:
   promote-to-release:
     name: 1b. Promote to release
     needs: [config, dev-tests]
-    # The only gate on the chain. Every later stage inherits it: a skipped job
-    # skips everything that needs it, so one condition stops the whole tail.
-    if: needs.config.outputs.run_chain == 'true'
+    # No status function here on purpose: the default needs-semantics already
+    # require dev-tests to have succeeded.
+    if: >-
+      needs.config.outputs.start_stage == 'dev' &&
+      needs.config.outputs.run_chain == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -200,11 +252,18 @@ jobs:
           git push origin "${{ github.sha }}:refs/heads/$TARGET"
 
   # ---------------------------------------------------------------------------
-  # Stage 2 - release. Cannot start until stage 1 is green and promoted.
+  # Stage 2 - release. Runs either because stage 1 promoted into it, or because
+  # the workflow was started from the release branch, which makes it the entry
+  # point and leaves the promotion before it skipped.
   # ---------------------------------------------------------------------------
   release-tests:
     name: 2. Release
     needs: [config, promote-to-release]
+    if: >-
+      !cancelled() &&
+      needs.config.result == 'success' &&
+      ( needs.config.outputs.start_stage == 'release' ||
+        needs.promote-to-release.result == 'success' )
     uses: ./.github/workflows/test-stage.yml
     with:
       environment: release
@@ -215,6 +274,12 @@ jobs:
   promote-to-main:
     name: 2b. Promote to main
     needs: [config, release-tests]
+    # release-tests is reached by two different paths, so its result is checked
+    # explicitly rather than left to the default needs-semantics.
+    if: >-
+      !cancelled() &&
+      needs.config.outputs.run_chain == 'true' &&
+      needs.release-tests.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -235,12 +300,20 @@ jobs:
           git push origin "${{ github.sha }}:refs/heads/$TARGET"
 
   # ---------------------------------------------------------------------------
-  # Stage 3 - production. The commit has passed dev and full regression on
-  # release, so this deploys and verifies rather than testing again first.
+  # Stage 3 - production. Deploying is a mutation, so it needs the same explicit
+  # permission as moving a branch: either the run promoted its way here, or it
+  # started from main with the promote box ticked. Entering from main without
+  # ticking it runs the smoke suite against production and nothing else.
   # ---------------------------------------------------------------------------
   deploy-production:
     name: 3. Deploy to production
     needs: [config, promote-to-main]
+    if: >-
+      !cancelled() &&
+      needs.config.result == 'success' &&
+      ( needs.promote-to-main.result == 'success' ||
+        ( needs.config.outputs.start_stage == 'production' &&
+          needs.config.outputs.run_chain == 'true' ) )
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -254,6 +327,14 @@ jobs:
   production-smoke:
     name: 3b. Production smoke
     needs: [config, deploy-production]
+    # Runs after a deployment, or on its own when main is the entry point and
+    # nothing was deployed. Never runs when a deployment was attempted and failed.
+    if: >-
+      !cancelled() &&
+      needs.config.result == 'success' &&
+      needs.deploy-production.result != 'failure' &&
+      ( needs.deploy-production.result == 'success' ||
+        needs.config.outputs.start_stage == 'production' )
     uses: ./.github/workflows/test-stage.yml
     with:
       environment: production

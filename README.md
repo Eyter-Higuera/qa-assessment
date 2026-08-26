@@ -125,11 +125,23 @@ Coverage widens as the commit approaches production: one browser on the developm
 gate to keep it fast, all four before production, smoke afterwards to confirm the
 deployment rather than re-test the build.
 
+**The branch you run from picks the entry point.** `eyter_dev` enters at stage 1,
+`release` at stage 2, `main` at stage 3; stages before the entry point are skipped and
+everything after it keeps its order. So running the workflow from `release` actually
+runs the release tests, instead of skipping them because the promotion that normally
+precedes them never happened.
+
+That last part is the subtle bit. A skipped job normally skips everything that `needs`
+it, which would cascade-skip the whole chain below an unused entry point. The stages
+that can be entered directly therefore test `needs.<previous>.result` explicitly rather
+than relying on the default needs-semantics.
+
 **Only `eyter_dev` triggers on push.** `release` and `main` deliberately do not, and
 that is the point: when all three were push triggers, pushing two branches started two
 independent runs and each promotion push started another, so the stages raced instead
 of queuing. Promotion now advances the chain through `needs:` — the branch push is
-only the *record* of what passed, not the trigger for what happens next.
+only the *record* of what passed, not the trigger for what happens next. To enter at
+stage 2 or 3, run the workflow manually from that branch.
 
 **Promotion is a fast-forward, never a merge commit.** Each promote job pushes the
 exact SHA that just passed at the next branch:
@@ -153,12 +165,25 @@ protection refuses pushes from that token; the promote jobs prefer it when prese
 |---|---|---|
 | Test suite | `smoke`, `full` | `-Dtest=SmokeTest` or `-Dtest=BookStoreApiTest`, `--grep @smoke` |
 | Browser | `chromium`, `firefox`, `webkit`, `msedge`, `all` | `--project=…` (a matrix leg each; `all` runs the four in parallel) |
-| Promote | off by default | whether the run continues past the dev stage |
+| Promote | off by default | whether the run continues past its entry stage |
 
-Leave *Promote* unticked and the run stops after the dev stage — nothing is promoted,
-no branch moves, production is never touched. Tick it and the same run walks the full
-chain in order, running your chosen suite and browsers at **both** test stages, so what
-the release stage runs is what you asked for rather than a hidden default.
+*Use workflow from* is the fourth input in everything but name: it chooses the entry
+stage, which is why there is no target-environment dropdown.
+
+Leave *Promote* unticked and the run tests its entry stage and stops — nothing is
+promoted, no branch moves, nothing is deployed. Tick it and the same run continues
+from there in order, running your chosen suite and browsers at each test stage it
+reaches.
+
+Promote also gates the deployment, not just branch movement. Running from `main` with
+it unticked verifies production with the smoke suite and deploys nothing, which is the
+mode for "is production still healthy?". Ticking it deploys first, then verifies.
+
+| Run from | Promote off | Promote on |
+|---|---|---|
+| `eyter_dev` | dev tests | dev → release → deploy → smoke |
+| `release` | release tests | release → deploy → smoke |
+| `main` | production smoke, no deploy | deploy, then production smoke |
 
 Other triggers: a pull request runs the smoke gate on dev in chromium, and the nightly
 schedule runs the full suite across all four browsers on dev. Neither promotes.
