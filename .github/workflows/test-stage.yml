@@ -1,0 +1,98 @@
+name: Test stage
+
+# One stage of the promotion chain: the API suite, then the web suite against the
+# same environment. Called by ci.yml once per environment rather than copied into
+# it three times, so the install and reporting steps have a single definition.
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment name - becomes karate.env and names the artifacts'
+        type: string
+        required: true
+      base_url:
+        description: 'Host under test'
+        type: string
+        required: true
+      suite:
+        description: 'smoke or full'
+        type: string
+        required: true
+      browsers:
+        description: 'JSON array of Playwright project names, e.g. ["chromium","msedge"]'
+        type: string
+        required: true
+
+jobs:
+  api:
+    name: API (Karate) - ${{ inputs.environment }} - ${{ inputs.suite }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Run Karate suite
+        working-directory: karate
+        # Karate selects its tag set through the runner class.
+        run: >-
+          mvn -B test
+          -Dtest=${{ inputs.suite == 'smoke' && 'SmokeTest' || 'BookStoreApiTest' }}
+          "-Dkarate.env=${{ inputs.environment }}"
+          "-DbaseUrl=${{ inputs.base_url }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: karate-reports-${{ inputs.environment }}
+          path: karate/target/karate-reports/
+          retention-days: 14
+
+  ui:
+    name: Web (Playwright) - ${{ inputs.environment }} - ${{ matrix.browser }}
+    # The web suite exercises the same back end; no point burning runner minutes
+    # on browsers if the API contract is already broken.
+    needs: api
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: ${{ fromJSON(inputs.browsers) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: playwright/package-lock.json
+      - name: Install dependencies
+        working-directory: playwright
+        run: npm ci
+      - name: Install browsers
+        working-directory: playwright
+        # Installs the bundled Chromium, Firefox and WebKit builds together with
+        # the OS-level libraries the runner needs to launch them headless.
+        run: npx playwright install --with-deps
+      - name: Install Microsoft Edge
+        if: matrix.browser == 'msedge'
+        working-directory: playwright
+        # Edge is a branded channel rather than a bundled engine, so the command
+        # above does not fetch it - it has to be requested by name.
+        run: npx playwright install --with-deps msedge
+      - name: Run Playwright suite
+        working-directory: playwright
+        env:
+          BASE_URL: ${{ inputs.base_url }}
+        # `playwright test` has no --channel flag: the msedge project declares
+        # `channel: 'msedge'`, so --project stays the single dispatch mechanism.
+        run: >-
+          npx playwright test --project=${{ matrix.browser }}
+          ${{ inputs.suite == 'smoke' && '--grep @smoke' || '' }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ inputs.environment }}-${{ matrix.browser }}
+          path: playwright/playwright-report/
+          retention-days: 14

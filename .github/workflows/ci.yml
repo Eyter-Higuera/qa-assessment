@@ -1,23 +1,29 @@
 name: QA Automation
 
-# Branch-per-environment promotion chain:
+# The whole promotion chain is ONE workflow run, wired with `needs:`:
 #
-#   eyter_dev  --(tests pass)-->  release  --(tests pass)-->  main
-#      |                            |                          |
-#      dev environment              release environment        production
-#      full suite, chromium         full regression, 4 browsers deploy + smoke
+#   config
+#     -> dev tests            (eyter_dev -> dev environment)
+#       -> promote to release
+#         -> release tests    (release -> release environment)
+#           -> promote to main
+#             -> deploy production
+#               -> production smoke
 #
-# Each promotion fast-forwards the exact commit that was just tested onto the
-# next branch, and the push to that branch starts the next stage. So a stage is
-# one workflow run, not one giant job graph, and the branch history is a record
-# of what actually passed.
+# Every arrow is a `needs:`, so GitHub renders one ordered graph and a stage
+# physically cannot start until the stage before it is green.
+#
+# `release` and `main` are deliberately NOT push triggers. They used to be, and
+# that is what made the stages race: pushing two branches starts two independent
+# runs, and each promotion push started a third. Promotion now advances the chain
+# through `needs:` and the branch push is only the record of what passed.
 
 on:
   push:
-    branches: [eyter_dev, release, main]
+    branches: [eyter_dev]
   pull_request:
   schedule:
-    # Nightly full regression on the integration environment.
+    # Nightly full regression on the integration environment. Does not promote.
     - cron: '0 2 * * *'
   workflow_dispatch:
     inputs:
@@ -39,12 +45,13 @@ on:
           - msedge
           - all
       promote:
-        description: 'Promote to the next branch if the tests pass'
+        description: 'Continue through release to production if each stage passes'
         type: boolean
         default: false
 
 concurrency:
-  # One pipeline per branch. PR runs are disposable; a promotion run is not.
+  # A promotion run moves branches, so never cancel one in flight. Queueing also
+  # keeps two chains from promoting different commits at the same time.
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
@@ -53,293 +60,188 @@ permissions:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # The branch decides the environment, so there is no target-environment input:
-  # dispatching this workflow on a ref already says which environment you mean.
-  # Everything else reads its parameters from here.
+  # One place decides which suite and browsers each stage runs, and whether this
+  # run advances past the first stage at all.
   # ---------------------------------------------------------------------------
   config:
     name: Resolve run configuration
     runs-on: ubuntu-latest
     outputs:
-      environment: ${{ steps.resolve.outputs.environment }}
-      karate_env: ${{ steps.resolve.outputs.karate_env }}
-      base_url: ${{ steps.resolve.outputs.base_url }}
+      dev_base_url: ${{ steps.resolve.outputs.dev_base_url }}
+      release_base_url: ${{ steps.resolve.outputs.release_base_url }}
+      production_base_url: ${{ steps.resolve.outputs.production_base_url }}
       suite: ${{ steps.resolve.outputs.suite }}
-      karate_test: ${{ steps.resolve.outputs.karate_test }}
-      playwright_grep: ${{ steps.resolve.outputs.playwright_grep }}
       browsers: ${{ steps.resolve.outputs.browsers }}
-      run_tests: ${{ steps.resolve.outputs.run_tests }}
-      promote_to: ${{ steps.resolve.outputs.promote_to }}
-      promote_environment: ${{ steps.resolve.outputs.promote_environment }}
-      deploy: ${{ steps.resolve.outputs.deploy }}
+      release_suite: ${{ steps.resolve.outputs.release_suite }}
+      release_browsers: ${{ steps.resolve.outputs.release_browsers }}
+      run_chain: ${{ steps.resolve.outputs.run_chain }}
     steps:
-      - name: Resolve environment, suite, browsers and promotion target
+      - name: Resolve suites, browsers and whether this run promotes
         id: resolve
         env:
           # Point these repository variables at the real hosts; the public demo
           # site is the fallback so the pipeline still runs in a fresh fork.
-          # DEV_BASE_URL falls back to STAGING_BASE_URL for continuity with the
-          # variable that already existed before the branch model.
           DEV_BASE_URL: ${{ vars.DEV_BASE_URL || vars.STAGING_BASE_URL || 'https://demoqa.com' }}
           RELEASE_BASE_URL: ${{ vars.RELEASE_BASE_URL || 'https://demoqa.com' }}
           PRODUCTION_BASE_URL: ${{ vars.PRODUCTION_BASE_URL || 'https://demoqa.com' }}
           EVENT_NAME: ${{ github.event_name }}
-          REF_NAME: ${{ github.ref_name }}
           INPUT_TEST_SUITE: ${{ inputs.test_suite }}
           INPUT_BROWSER: ${{ inputs.browser }}
           INPUT_PROMOTE: ${{ inputs.promote }}
         run: |
           set -euo pipefail
 
-          # smoke/full is expressed two different ways: Karate selects its tag
-          # set through the runner class, Playwright through --grep.
-          karate_test_for() {
-            if [ "$1" = smoke ]; then echo SmokeTest; else echo BookStoreApiTest; fi
+          json_browsers() {
+            if [ "$1" = all ]; then
+              echo '["chromium","firefox","webkit","msedge"]'
+            else
+              echo "[\"$1\"]"
+            fi
           }
-          grep_for() {
-            if [ "$1" = smoke ]; then echo "--grep @smoke"; else echo ""; fi
-          }
-
-          # --- branch -> environment, and where that branch promotes to -------
-          case "$REF_NAME" in
-            eyter_dev) ENVIRONMENT=dev;        PROMOTES_TO=release ;;
-            release)   ENVIRONMENT=release;    PROMOTES_TO=main ;;
-            main)      ENVIRONMENT=production; PROMOTES_TO='' ;;
-            # Feature branches and PR refs are exercised against dev and never
-            # promote: promotion is a property of the chain, not of a branch
-            # that happens to run the suite.
-            *)         ENVIRONMENT=dev;        PROMOTES_TO='' ;;
-          esac
-
-          # --- what this trigger does ----------------------------------------
-          RUN_TESTS=true
-          PROMOTE_TO=''
-          DEPLOY=false
 
           case "$EVENT_NAME" in
             push)
-              case "$REF_NAME" in
-                eyter_dev)
-                  # The development gate: broad, but a single browser keeps it fast.
-                  SUITE=full; BROWSER=chromium; PROMOTE_TO="$PROMOTES_TO"
-                  ;;
-                release)
-                  # Full regression across every browser before production.
-                  SUITE=full; BROWSER=all; PROMOTE_TO="$PROMOTES_TO"
-                  ;;
-                main)
-                  # The commit on main already passed full regression on release,
-                  # so main deploys and then verifies - it does not re-test first.
-                  SUITE=smoke; BROWSER=chromium; RUN_TESTS=false; DEPLOY=true
-                  ;;
-                *)
-                  SUITE=smoke; BROWSER=chromium
-                  ;;
-              esac
-              ;;
-            schedule)
-              # Always the integration environment, whatever ref the schedule ran on.
-              ENVIRONMENT=dev; SUITE=full; BROWSER=all
+              # A push to eyter_dev runs the chain end to end. Coverage widens as
+              # the commit approaches production: one browser on the development
+              # gate to keep it fast, all four before production.
+              SUITE=full;  BROWSER=chromium
+              RELEASE_SUITE=full; RELEASE_BROWSER=all
+              RUN_CHAIN=true
               ;;
             workflow_dispatch)
-              SUITE="$INPUT_TEST_SUITE"
-              BROWSER="$INPUT_BROWSER"
-              # Manual runs test by default and only promote when asked, so
-              # re-running a suite can never move a branch by accident.
-              if [ "$INPUT_PROMOTE" = true ]; then PROMOTE_TO="$PROMOTES_TO"; fi
+              # The operator's choice applies to both test stages, so what the
+              # release stage runs is what they asked for, not a hidden default.
+              SUITE="$INPUT_TEST_SUITE";  BROWSER="$INPUT_BROWSER"
+              RELEASE_SUITE="$INPUT_TEST_SUITE"; RELEASE_BROWSER="$INPUT_BROWSER"
+              # Unticked, the run stops after the dev stage: re-running a suite to
+              # check something must never move a branch or reach production.
+              RUN_CHAIN="$INPUT_PROMOTE"
+              ;;
+            schedule)
+              SUITE=full;  BROWSER=all
+              RELEASE_SUITE=full; RELEASE_BROWSER=all
+              RUN_CHAIN=false
               ;;
             *)
               # pull_request: fast gate only.
               SUITE=smoke; BROWSER=chromium
+              RELEASE_SUITE=smoke; RELEASE_BROWSER=chromium
+              RUN_CHAIN=false
               ;;
           esac
 
-          case "$ENVIRONMENT" in
-            dev)        BASE_URL="$DEV_BASE_URL" ;;
-            release)    BASE_URL="$RELEASE_BASE_URL" ;;
-            production) BASE_URL="$PRODUCTION_BASE_URL" ;;
-          esac
-
-          # Gate the promotion behind the environment it is promoting towards,
-          # so a required reviewer can be added in repository settings without
-          # touching this file.
-          case "$PROMOTE_TO" in
-            release) PROMOTE_ENVIRONMENT=release ;;
-            main)    PROMOTE_ENVIRONMENT=production ;;
-            *)       PROMOTE_ENVIRONMENT='' ;;
-          esac
-
-          if [ "$BROWSER" = all ]; then
-            BROWSERS='["chromium","firefox","webkit","msedge"]'
-          else
-            BROWSERS="[\"$BROWSER\"]"
-          fi
-
           {
-            echo "environment=$ENVIRONMENT"
-            echo "karate_env=$ENVIRONMENT"
-            echo "base_url=$BASE_URL"
+            echo "dev_base_url=$DEV_BASE_URL"
+            echo "release_base_url=$RELEASE_BASE_URL"
+            echo "production_base_url=$PRODUCTION_BASE_URL"
             echo "suite=$SUITE"
-            echo "karate_test=$(karate_test_for "$SUITE")"
-            echo "playwright_grep=$(grep_for "$SUITE")"
-            echo "browsers=$BROWSERS"
-            echo "run_tests=$RUN_TESTS"
-            echo "promote_to=$PROMOTE_TO"
-            echo "promote_environment=$PROMOTE_ENVIRONMENT"
-            echo "deploy=$DEPLOY"
+            echo "browsers=$(json_browsers "$BROWSER")"
+            echo "release_suite=$RELEASE_SUITE"
+            echo "release_browsers=$(json_browsers "$RELEASE_BROWSER")"
+            echo "run_chain=$RUN_CHAIN"
           } >> "$GITHUB_OUTPUT"
 
           {
             echo "### Run configuration"
             echo ""
-            echo "| Setting | Value |"
+            echo "| Stage | Runs |"
             echo "|---|---|"
-            echo "| Trigger | $EVENT_NAME on \`$REF_NAME\` |"
-            echo "| Environment | $ENVIRONMENT ($BASE_URL) |"
-            echo "| Suite | $SUITE |"
-            echo "| Browsers | $BROWSERS |"
-            if [ "$DEPLOY" = true ]; then
-              echo "| Deploy | production, then smoke verification |"
-            fi
-            if [ -n "$PROMOTE_TO" ]; then
-              echo "| Promotes to | \`$PROMOTE_TO\` if the suite passes |"
+            echo "| 1. dev | $SUITE on $(json_browsers "$BROWSER") - $DEV_BASE_URL |"
+            if [ "$RUN_CHAIN" = true ]; then
+              echo "| 2. release | $RELEASE_SUITE on $(json_browsers "$RELEASE_BROWSER") - $RELEASE_BASE_URL |"
+              echo "| 3. production | deploy, then smoke - $PRODUCTION_BASE_URL |"
             else
-              echo "| Promotes to | nothing |"
+              echo "| 2. release | skipped - this run does not promote |"
+              echo "| 3. production | skipped - this run does not promote |"
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
   # ---------------------------------------------------------------------------
-  # Test the environment this branch maps to.
+  # Stage 1 - dev. Always runs.
   # ---------------------------------------------------------------------------
-  api-tests:
-    name: API (Karate) - ${{ needs.config.outputs.environment }} - ${{ needs.config.outputs.suite }}
+  dev-tests:
+    name: 1. Dev
     needs: config
-    if: needs.config.outputs.run_tests == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: maven
-      - name: Run Karate suite
-        working-directory: karate
-        run: >-
-          mvn -B test
-          -Dtest=${{ needs.config.outputs.karate_test }}
-          "-Dkarate.env=${{ needs.config.outputs.karate_env }}"
-          "-DbaseUrl=${{ needs.config.outputs.base_url }}"
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: karate-reports-${{ needs.config.outputs.environment }}
-          path: karate/target/karate-reports/
-          retention-days: 14
+    uses: ./.github/workflows/test-stage.yml
+    with:
+      environment: dev
+      base_url: ${{ needs.config.outputs.dev_base_url }}
+      suite: ${{ needs.config.outputs.suite }}
+      browsers: ${{ needs.config.outputs.browsers }}
 
-  ui-tests:
-    name: Web (Playwright) - ${{ needs.config.outputs.environment }} - ${{ matrix.browser }}
-    # The web suite exercises the same back end; no point burning runner minutes
-    # on browsers if the API contract is already broken.
-    needs: [config, api-tests]
-    if: needs.config.outputs.run_tests == 'true'
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        browser: ${{ fromJSON(needs.config.outputs.browsers) }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: npm
-          cache-dependency-path: playwright/package-lock.json
-      - name: Install dependencies
-        working-directory: playwright
-        run: npm ci
-      - name: Install browsers
-        working-directory: playwright
-        # Installs the bundled Chromium, Firefox and WebKit builds together with
-        # the OS-level libraries the runner needs to launch them headless.
-        run: npx playwright install --with-deps
-      - name: Install Microsoft Edge
-        if: matrix.browser == 'msedge'
-        working-directory: playwright
-        # Edge is a branded channel rather than a bundled engine, so the command
-        # above does not fetch it - it has to be requested by name.
-        run: npx playwright install --with-deps msedge
-      - name: Run Playwright suite
-        working-directory: playwright
-        env:
-          BASE_URL: ${{ needs.config.outputs.base_url }}
-        # `playwright test` has no --channel flag: the msedge project declares
-        # `channel: 'msedge'`, so --project stays the single dispatch mechanism.
-        run: npx playwright test --project=${{ matrix.browser }} ${{ needs.config.outputs.playwright_grep }}
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-report-${{ needs.config.outputs.environment }}-${{ matrix.browser }}
-          path: playwright/playwright-report/
-          retention-days: 14
-
-  # ---------------------------------------------------------------------------
-  # Promotion: move the tested commit onto the next branch in the chain. The
-  # push to that branch is what starts the next stage.
-  # ---------------------------------------------------------------------------
-  promote:
-    name: Promote ${{ github.ref_name }} to ${{ needs.config.outputs.promote_to }}
-    needs: [config, api-tests, ui-tests]
-    if: needs.config.outputs.promote_to != ''
+  promote-to-release:
+    name: 1b. Promote to release
+    needs: [config, dev-tests]
+    # The only gate on the chain. Every later stage inherits it: a skipped job
+    # skips everything that needs it, so one condition stops the whole tail.
+    if: needs.config.outputs.run_chain == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     environment:
-      name: ${{ needs.config.outputs.promote_environment }}
+      name: release
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          # A push made with the default GITHUB_TOKEN does not start another
-          # workflow run, which would stop the chain dead at the first
-          # promotion. Set a PROMOTION_TOKEN secret (a PAT or app token with
-          # contents:write) to keep eyter_dev -> release -> main flowing.
+          # Only needed where branch protection refuses the default token; the
+          # chain no longer depends on a push starting the next run.
           token: ${{ secrets.PROMOTION_TOKEN || secrets.GITHUB_TOKEN }}
-      - name: Promote the tested commit
+      - name: Fast-forward release to the tested commit
         env:
-          TARGET: ${{ needs.config.outputs.promote_to }}
-          PROMOTION_TOKEN: ${{ secrets.PROMOTION_TOKEN }}
+          TARGET: release
         run: |
           set -euo pipefail
-
-          echo "Promoting ${{ github.sha }} from ${{ github.ref_name }} to $TARGET."
-
-          # Fast-forward only. Pushing the tested SHA straight at the target ref
-          # means the tree that lands is byte-for-byte the tree that passed; git
-          # rejects the push if $TARGET has diverged, which is the correct
-          # outcome - better a loud failure than a CI-authored merge commit that
-          # no stage of this pipeline has ever run against.
+          echo "Dev stage green - promoting ${{ github.sha }} to $TARGET."
+          # Pushing the tested SHA straight at the target ref means the tree that
+          # lands is byte-for-byte the tree that passed. Git rejects the push if
+          # $TARGET has diverged, which is the right outcome: better a loud
+          # failure than a merge commit no stage has ever run against.
           git push origin "${{ github.sha }}:refs/heads/$TARGET"
 
-          if [ -z "${PROMOTION_TOKEN:-}" ]; then
-            echo "::warning title=Promotion chain stops here::Pushed with the default \
-          GITHUB_TOKEN, which by design does not trigger workflows. $TARGET was updated \
-          but its pipeline will not start. Add a PROMOTION_TOKEN secret to automate the \
-          rest of the chain."
-          fi
+  # ---------------------------------------------------------------------------
+  # Stage 2 - release. Cannot start until stage 1 is green and promoted.
+  # ---------------------------------------------------------------------------
+  release-tests:
+    name: 2. Release
+    needs: [config, promote-to-release]
+    uses: ./.github/workflows/test-stage.yml
+    with:
+      environment: release
+      base_url: ${{ needs.config.outputs.release_base_url }}
+      suite: ${{ needs.config.outputs.release_suite }}
+      browsers: ${{ needs.config.outputs.release_browsers }}
 
-  # ---------------------------------------------------------------------------
-  # Production: main already passed full regression on release, so this stage
-  # deploys and then verifies rather than re-testing beforehand.
-  # ---------------------------------------------------------------------------
-  deploy-production:
-    name: Deploy to production
-    needs: config
-    if: needs.config.outputs.deploy == 'true'
+  promote-to-main:
+    name: 2b. Promote to main
+    needs: [config, release-tests]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     environment:
       name: production
-      url: ${{ needs.config.outputs.base_url }}
+      url: ${{ needs.config.outputs.production_base_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PROMOTION_TOKEN || secrets.GITHUB_TOKEN }}
+      - name: Fast-forward main to the tested commit
+        env:
+          TARGET: main
+        run: |
+          set -euo pipefail
+          echo "Release stage green - promoting ${{ github.sha }} to $TARGET."
+          git push origin "${{ github.sha }}:refs/heads/$TARGET"
+
+  # ---------------------------------------------------------------------------
+  # Stage 3 - production. The commit has passed dev and full regression on
+  # release, so this deploys and verifies rather than testing again first.
+  # ---------------------------------------------------------------------------
+  deploy-production:
+    name: 3. Deploy to production
+    needs: [config, promote-to-main]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Deploy to production
@@ -349,64 +251,13 @@ jobs:
           # Replace with the real deployment command, for example:
           #   ./scripts/deploy.sh production "${{ github.sha }}"
 
-  production-smoke-api:
-    name: Smoke - API (Karate) - production
+  production-smoke:
+    name: 3b. Production smoke
     needs: [config, deploy-production]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: maven
-      - name: Run Karate smoke suite against production
-        working-directory: karate
-        run: >-
-          mvn -B test
-          -Dtest=${{ needs.config.outputs.karate_test }}
-          "-Dkarate.env=${{ needs.config.outputs.karate_env }}"
-          "-DbaseUrl=${{ needs.config.outputs.base_url }}"
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: karate-reports-production
-          path: karate/target/karate-reports/
-          retention-days: 14
-
-  production-smoke-ui:
-    name: Smoke - Web (Playwright) - production - ${{ matrix.browser }}
-    needs: [config, deploy-production]
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        browser: ${{ fromJSON(needs.config.outputs.browsers) }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: npm
-          cache-dependency-path: playwright/package-lock.json
-      - name: Install dependencies
-        working-directory: playwright
-        run: npm ci
-      - name: Install browsers
-        working-directory: playwright
-        run: npx playwright install --with-deps
-      - name: Install Microsoft Edge
-        if: matrix.browser == 'msedge'
-        working-directory: playwright
-        run: npx playwright install --with-deps msedge
-      - name: Run Playwright smoke suite against production
-        working-directory: playwright
-        env:
-          BASE_URL: ${{ needs.config.outputs.base_url }}
-        run: npx playwright test --project=${{ matrix.browser }} ${{ needs.config.outputs.playwright_grep }}
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-report-production-${{ matrix.browser }}
-          path: playwright/playwright-report/
-          retention-days: 14
+    uses: ./.github/workflows/test-stage.yml
+    with:
+      environment: production
+      base_url: ${{ needs.config.outputs.production_base_url }}
+      # Always smoke: this confirms the deployment, it does not re-test the build.
+      suite: smoke
+      browsers: ${{ needs.config.outputs.browsers }}
