@@ -106,60 +106,78 @@ Reports land in `karate/target/karate-reports/karate-summary.html`.
 
 ## CI/CD
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) is a staging-to-production
-delivery pipeline. A single `config` job resolves *which environment, which suite,
-which browsers, and does this run promote* from the trigger and inputs, and every
-other job reads its parameters from there — so there is one place to change, not six.
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) is a branch-per-environment
+promotion chain. The branch decides the environment; a single `config` job resolves
+*which environment, which suite, which browsers, and does this run promote*, and
+every other job reads its parameters from there — one place to change, not six.
 
-**On push to `main`** the full Karate and Playwright suites run against **staging**.
-Only if both are green does `promote-to-production` deploy, and post-deployment
-**smoke** tests then run against production at both layers — API and UI.
+| Branch | Environment | On push |
+|---|---|---|
+| `eyter_dev` | dev | full suite, chromium — then promote to `release` |
+| `release` | release | full regression, all four browsers — then promote to `main` |
+| `main` | production | deploy, then post-deployment smoke (API + UI) |
 
 ```
-config → api-tests (staging) → ui-tests (staging) → promote → ┬ verify: API (production)
-                                                              └ verify: Web (production)
+push eyter_dev → api + ui (dev)      → promote ─┐
+push release   → api + ui (release)  → promote ─┤   each promotion is a push,
+push main      → deploy → smoke (production)  ←─┘   which starts the next stage
 ```
 
-**Run it by hand** from the Actions tab (*Run workflow*), which offers four dropdowns:
+Coverage widens as the code approaches production: one browser on the development
+gate to keep it fast, all four before production, smoke afterwards to confirm the
+deployment rather than re-test the build.
+
+**Promotion is a fast-forward, never a merge commit.** The promote job pushes the
+exact SHA that just passed at the next branch:
+
+```bash
+git push origin "$TESTED_SHA:refs/heads/$TARGET"
+```
+
+Git rejects that push if the target has diverged, which is the outcome you want — a
+loud failure beats a CI-authored merge commit that no stage of the pipeline has ever
+run against. The tree that lands on `release` is byte-for-byte the tree that passed
+on `eyter_dev`.
+
+> **Set a `PROMOTION_TOKEN` secret** (a PAT or app token with `contents: write`) for
+> the chain to flow on its own. A push made with the default `GITHUB_TOKEN` does not
+> trigger another workflow run — by design, to prevent recursion — so without it the
+> branch is updated but the next stage never starts. The job warns when it is running
+> on the fallback token. If the target branches are protected, that token also needs
+> permission to push to them.
+
+**Run it by hand** from the Actions tab (*Run workflow*). There is no
+target-environment input: choosing the ref already says which environment you mean,
+which is the point of mapping branches to environments.
 
 | Input | Options | Wired to |
 |---|---|---|
-| Execution mode | `single_env`, `staging_to_prod` | whether the promotion stage runs at all |
-| Target environment | `staging`, `production` | `-Dkarate.env=…` and `BASE_URL` |
+| Branch (*Use workflow from*) | any ref | `-Dkarate.env=…` and `BASE_URL`, via the branch map above |
 | Test suite | `smoke`, `full` | `-Dtest=SmokeTest` or `-Dtest=BookStoreApiTest`, `--grep @smoke` |
 | Browser | `chromium`, `firefox`, `webkit`, `msedge`, `all` | `--project=…` (a matrix leg each; `all` runs the four in parallel) |
+| Promote | off by default | whether a green run moves the branch on |
 
-The two modes:
+Promotion is opt-in on manual runs, so re-running a suite to check something can
+never move a branch by accident. Feature branches and PR refs map to dev and never
+promote, whatever that checkbox says — promotion is a property of the chain, not of
+any branch that happens to run the suite.
 
-* **`single_env`** — run the chosen suite and browsers against **target environment**
-  and stop. Nothing is promoted and no production job runs, whether the target was
-  staging or production. This is the mode for "re-run the API suite against
-  production in Edge" without touching a deployment.
-* **`staging_to_prod`** — the manual equivalent of the push flow. Stage A runs the
-  chosen suite and browsers against staging; only if it is green does stage B
-  promote and then verify production with **the same suite and browsers**. Target
-  environment is ignored here, because this mode always starts at staging.
-
-The one asymmetry worth knowing: an automatic promotion from a push to `main` runs
-`full` on staging but verifies production with `smoke`, keeping the post-deploy check
-fast. A `staging_to_prod` run verifies with whatever suite the operator picked, since
-they asked for it explicitly.
-
-Other triggers keep their previous behaviour: a pull request runs the smoke gate on
-staging in chromium, and the nightly schedule runs the full suite on staging across
-all four browsers. Neither promotes.
+Other triggers: a pull request runs the smoke gate on dev in chromium, and the
+nightly schedule runs the full suite across all four browsers on dev regardless of
+the ref it fires on. Neither promotes.
 
 The runner installs browsers with `npx playwright install --with-deps`, plus
 `npx playwright install --with-deps msedge` on the Edge leg, since the bare command
 does not fetch the branded channel.
 
-Host names come from the repository variables `STAGING_BASE_URL` and
-`PRODUCTION_BASE_URL`, falling back to the public demo site so the pipeline runs in
-a fresh fork. `promote-to-production` targets a GitHub `production` environment, so a
-required-reviewer gate can be added there without touching the workflow. Its deploy
-step is a labelled placeholder — this repository has nothing of its own to ship.
+Host names come from the repository variables `DEV_BASE_URL`, `RELEASE_BASE_URL` and
+`PRODUCTION_BASE_URL`, falling back to the public demo site so the pipeline runs in a
+fresh fork. Each promotion is gated on the GitHub environment it moves towards
+(`release`, then `production`), so a required-reviewer approval can be added in
+repository settings without touching the workflow. The deploy step is a labelled
+placeholder — this repository has nothing of its own to ship.
 
-Reports are uploaded for **both** environments: `karate-reports-<env>` and
+Reports are uploaded for **every** environment: `karate-reports-<env>` and
 `playwright-report-<env>-<browser>`, retained 14 days.
 
 ## Repository layout
@@ -169,7 +187,7 @@ Senior_QA_Engineer_Assessment.md   the written submission
 docs/assessment.html               the same document, formatted for reading and print
 playwright/                        web automation — page objects, fixtures, specs
 karate/                            API automation — feature files and JUnit runners
-.github/workflows/ci.yml           staging → production CD pipeline; see CI/CD above
+.github/workflows/ci.yml           eyter_dev → release → main promotion chain; see CI/CD above
 ```
 
 ## How the suites are put together

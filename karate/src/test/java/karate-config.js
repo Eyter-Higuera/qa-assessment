@@ -20,17 +20,22 @@ function fn() {
     secondIsbn: '9781449331818'
   };
 
-  // CI passes the real host with -DbaseUrl=...; the literals are only the
-  // fallback for a developer running `mvn test -Dkarate.env=staging` by hand.
-  if (env === 'staging') {
-    config.baseUrl = karate.properties['baseUrl'] || 'https://staging.example.com';
+  // One entry per environment in the promotion chain, plus the two a developer
+  // uses by hand. CI always passes the real host with -DbaseUrl=..., so these
+  // literals are only the fallback for `mvn test -Dkarate.env=release` locally.
+  var defaultHosts = {
+    dev: 'https://demoqa.com',
+    staging: 'https://staging.example.com',
+    release: 'https://release.example.com',
+    production: 'https://demoqa.com',
+    local: 'http://localhost:3000'
+  };
+  if (!defaultHosts[env]) {
+    // A typo in -Dkarate.env would otherwise run the whole suite against the
+    // default host and report a pass for an environment nobody tested.
+    karate.fail('unknown karate.env: ' + env);
   }
-  if (env === 'production') {
-    config.baseUrl = karate.properties['baseUrl'] || 'https://demoqa.com';
-  }
-  if (env === 'local') {
-    config.baseUrl = 'http://localhost:3000';
-  }
+  config.baseUrl = karate.properties['baseUrl'] || defaultHosts[env];
 
   // Fail fast rather than hang when an environment is down.
   karate.configure('connectTimeout', 10000);
