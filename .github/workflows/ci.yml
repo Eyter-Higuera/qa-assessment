@@ -345,9 +345,14 @@ jobs:
   production-smoke:
     name: 3b. Production smoke
     needs: [config, deploy-production]
-    # No condition needed: every path into stage 3 now deploys first, so the
-    # default needs-semantics say exactly the right thing - verify a deployment
-    # that succeeded, and skip when there was none or it failed.
+    # Relying on the implicit needs-semantics here silently skipped this job:
+    # entering from main leaves promote-to-main skipped, and that skipped state
+    # propagates down the chain even though deploy-production itself ran. A
+    # status function opts out of that inheritance, so the only thing that
+    # decides whether production is verified is whether it was deployed.
+    if: >-
+      !cancelled() &&
+      needs.deploy-production.result == 'success'
     uses: ./.github/workflows/test-stage.yml
     with:
       environment: production
@@ -355,3 +360,25 @@ jobs:
       # Always smoke: this confirms the deployment, it does not re-test the build.
       suite: smoke
       browsers: ${{ needs.config.outputs.browsers }}
+
+  # ---------------------------------------------------------------------------
+  # A run that deployed and then skipped its verification used to finish green in
+  # seventeen seconds. This job exists so that cannot happen again: if production
+  # was deployed, the smoke suite must have passed for the run to succeed.
+  # ---------------------------------------------------------------------------
+  pipeline-result:
+    name: Pipeline result
+    needs: [config, deploy-production, production-smoke]
+    if: always() && needs.deploy-production.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: A deployment must be verified
+        env:
+          SMOKE: ${{ needs.production-smoke.result }}
+        run: |
+          set -euo pipefail
+          if [ "$SMOKE" != success ]; then
+            echo "::error title=Production deployed but not verified::The smoke           suite finished as '$SMOKE' rather than success. Failing the run so this           does not read as a clean deployment."
+            exit 1
+          fi
+          echo "Production deployed and verified by the smoke suite."

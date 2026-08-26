@@ -179,6 +179,11 @@ reaches.
 from `main` — there is nowhere further to promote to. Entering at stage 3 deploys
 either way: running this workflow from `main` is a deployment, not a dry run.
 
+A final `Pipeline result` job asserts that a deployment was actually verified. If
+production was deployed and the smoke suite did not pass — failed, or skipped for
+any reason — the run goes red. Without it a deploy whose verification never ran
+reports green, which is the one way this pipeline can lie to you.
+
 | Run from | Promote off | Promote on |
 |---|---|---|
 | `eyter_dev` | dev tests | dev → release → deploy → smoke |
