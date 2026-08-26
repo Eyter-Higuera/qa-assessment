@@ -62,15 +62,21 @@ The `VAR=value command` prefix is bash-only — PowerShell has no inline env-var
 #### Cross-browser runs
 
 Chromium is the gate and the only browser the setup above installs, so every
-`npm` script pins `--project=chromium`. Firefox and WebKit are opt-in and need
-their browsers installed first:
+`npm` script pins `--project=chromium`. Firefox, WebKit and Microsoft Edge are
+opt-in and need their browsers installed first:
 
 ```bash
-npx playwright install firefox webkit
+npx playwright install firefox webkit msedge
 npm run test:cross-browser
+npx playwright test --project=msedge
 ```
 
-All three browsers pass. They stay out of the PR gate to keep it fast, not because
+Edge is a branded channel rather than a bundled engine, so `npx playwright install`
+on its own does not fetch it — it has to be named. `playwright test` has no
+`--channel` flag either, so the config models Edge as a project that pins
+`channel: 'msedge'`; one `--project` argument then selects any of the four.
+
+All four browsers pass. They stay out of the PR gate to keep it fast, not because
 they are broken — but they run against a public demo site, so treat a failure there
 as "check the environment" before "check the product".
 
@@ -85,6 +91,7 @@ cd karate
 mvn test -Dtest=BookStoreApiTest    # full suite
 mvn test -Dtest=SmokeTest           # @smoke only
 mvn test -Dkarate.env=staging       # point at another environment
+mvn test -Dkarate.env=production -DbaseUrl=https://demoqa.com   # host override
 ```
 
 On Windows PowerShell, quote any `-D` containing a dot — PowerShell ends a parameter
@@ -97,6 +104,47 @@ mvn test '-Dkarate.env=staging'
 
 Reports land in `karate/target/karate-reports/karate-summary.html`.
 
+## CI/CD
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) is a staging-to-production
+delivery pipeline. A single `config` job resolves *which environment, which suite,
+which browsers* from the trigger, and every other job reads its parameters from
+there — so there is one place to change, not six.
+
+**On push to `main`** the full Karate and Playwright suites run against **staging**.
+Only if both are green does `promote-to-production` deploy, and post-deployment
+**smoke** tests then run against production at both layers — API and UI.
+
+```
+config → api-tests (staging) → ui-tests (staging) → promote → ┬ smoke: API  (production)
+                                                              └ smoke: Web  (production)
+```
+
+**Run it by hand** from the Actions tab (*Run workflow*), which offers three dropdowns:
+
+| Input | Options | Wired to |
+|---|---|---|
+| Target environment | `staging`, `production` | `-Dkarate.env=…` and `BASE_URL` |
+| Test suite | `smoke`, `full` | `-Dtest=SmokeTest` or `-Dtest=BookStoreApiTest`, `--grep @smoke` |
+| Browser | `chromium`, `firefox`, `webkit`, `msedge`, `all` | `--project=…` (a matrix leg each; `all` runs the four in parallel) |
+
+Other triggers keep their previous behaviour: a pull request runs the smoke gate on
+staging in chromium, and the nightly schedule runs the full suite on staging across
+all four browsers. Neither promotes.
+
+The runner installs browsers with `npx playwright install --with-deps`, plus
+`npx playwright install --with-deps msedge` on the Edge leg, since the bare command
+does not fetch the branded channel.
+
+Host names come from the repository variables `STAGING_BASE_URL` and
+`PRODUCTION_BASE_URL`, falling back to the public demo site so the pipeline runs in
+a fresh fork. `promote-to-production` targets a GitHub `production` environment, so a
+required-reviewer gate can be added there without touching the workflow. Its deploy
+step is a labelled placeholder — this repository has nothing of its own to ship.
+
+Reports are uploaded for **both** environments: `karate-reports-<env>` and
+`playwright-report-<env>-<browser>`, retained 14 days.
+
 ## Repository layout
 
 ```
@@ -104,7 +152,7 @@ Senior_QA_Engineer_Assessment.md   the written submission
 docs/assessment.html               the same document, formatted for reading and print
 playwright/                        web automation — page objects, fixtures, specs
 karate/                            API automation — feature files and JUnit runners
-.github/workflows/ci.yml           smoke on every PR, full regression nightly
+.github/workflows/ci.yml           staging → production CD pipeline; see CI/CD above
 ```
 
 ## How the suites are put together

@@ -20,8 +20,13 @@ function fn() {
     secondIsbn: '9781449331818'
   };
 
+  // CI passes the real host with -DbaseUrl=...; the literals are only the
+  // fallback for a developer running `mvn test -Dkarate.env=staging` by hand.
   if (env === 'staging') {
     config.baseUrl = karate.properties['baseUrl'] || 'https://staging.example.com';
+  }
+  if (env === 'production') {
+    config.baseUrl = karate.properties['baseUrl'] || 'https://demoqa.com';
   }
   if (env === 'local') {
     config.baseUrl = 'http://localhost:3000';

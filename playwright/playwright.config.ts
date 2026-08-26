@@ -37,14 +37,19 @@ export default defineConfig({
     testIdAttribute: 'data-testid',
   },
 
-  // All three are declared so `--project=firefox` works, but the npm scripts pin
+  // All four are declared so `--project=<browser>` works, but the npm scripts pin
   // `--project=chromium`: chromium is the gate, and it is the only browser the
   // documented setup (`npx playwright install chromium`) actually installs.
   // Cross-browser is genuinely opt-in - `npm run test:cross-browser`, after
-  // `npx playwright install firefox webkit`. See README -> Cross-browser runs.
+  // `npx playwright install firefox webkit msedge`. See README -> Cross-browser runs.
+  //
+  // `playwright test` has no --channel flag, so Microsoft Edge is modelled as a
+  // project that pins the channel. That keeps CI on a single dispatch mechanism:
+  // one dropdown value maps to one --project argument, Edge included.
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+    { name: 'msedge', use: { ...devices['Desktop Edge'], channel: 'msedge' } },
   ],
 });

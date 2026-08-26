@@ -17,6 +17,8 @@
     <junit5.version>5.11.3</junit5.version>
     <!-- Overridable at runtime: mvn test -Dkarate.env=staging -->
     <karate.env>dev</karate.env>
+    <!-- Empty by default so karate-config.js falls back to its own literals. -->
+    <baseUrl></baseUrl>
   </properties>
 
   <dependencyManagement>
@@ -70,6 +72,9 @@
           <argLine>-Dfile.encoding=UTF-8</argLine>
           <systemPropertyVariables>
             <karate.env>${karate.env}</karate.env>
+            <!-- Surefire forks a JVM; without this the CLI -DbaseUrl never
+                 reaches karate.properties['baseUrl'] inside the tests. -->
+            <baseUrl>${baseUrl}</baseUrl>
           </systemPropertyVariables>
         </configuration>
       </plugin>
