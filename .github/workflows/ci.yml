@@ -9,14 +9,23 @@ on:
     - cron: '0 2 * * *'
   workflow_dispatch:
     inputs:
-      environment:
-        description: 'Target environment'
+      execution_mode:
+        description: 'Execution mode'
+        type: choice
+        default: single_env
+        options:
+          # Test one environment and stop.
+          - single_env
+          # Test staging, then promote to production and verify there.
+          - staging_to_prod
+      target_env:
+        description: 'Target environment (single_env only; ignored by staging_to_prod)'
         type: choice
         default: staging
         options:
           - staging
           - production
-      suite:
+      test_suite:
         description: 'Test suite'
         type: choice
         default: smoke
@@ -45,7 +54,13 @@ permissions:
 jobs:
   # ---------------------------------------------------------------------------
   # Every downstream job reads its parameters from here, so there is exactly one
-  # place that decides "which environment, which suite, which browsers".
+  # place that decides "which environment, which suite, which browsers, and does
+  # this run promote".
+  #
+  # The `verify_*` outputs describe the post-deployment run on production, which
+  # is not always the same suite as stage 1: an automatic promotion from a push
+  # verifies with smoke, while an operator choosing staging_to_prod verifies with
+  # whichever suite they picked.
   # ---------------------------------------------------------------------------
   config:
     name: Resolve run configuration
@@ -60,8 +75,11 @@ jobs:
       browsers: ${{ steps.resolve.outputs.browsers }}
       promote: ${{ steps.resolve.outputs.promote }}
       production_base_url: ${{ steps.resolve.outputs.production_base_url }}
+      verify_suite: ${{ steps.resolve.outputs.verify_suite }}
+      verify_karate_test: ${{ steps.resolve.outputs.verify_karate_test }}
+      verify_grep: ${{ steps.resolve.outputs.verify_grep }}
     steps:
-      - name: Resolve environment, suite and browsers
+      - name: Resolve execution mode, environment, suite and browsers
         id: resolve
         env:
           # Point these repository variables at the real hosts; the public demo
@@ -69,29 +87,56 @@ jobs:
           STAGING_BASE_URL: ${{ vars.STAGING_BASE_URL || 'https://demoqa.com' }}
           PRODUCTION_BASE_URL: ${{ vars.PRODUCTION_BASE_URL || 'https://demoqa.com' }}
           EVENT_NAME: ${{ github.event_name }}
-          INPUT_ENVIRONMENT: ${{ inputs.environment }}
-          INPUT_SUITE: ${{ inputs.suite }}
+          INPUT_EXECUTION_MODE: ${{ inputs.execution_mode }}
+          INPUT_TARGET_ENV: ${{ inputs.target_env }}
+          INPUT_TEST_SUITE: ${{ inputs.test_suite }}
           INPUT_BROWSER: ${{ inputs.browser }}
         run: |
           set -euo pipefail
 
+          # smoke/full is expressed two different ways: Karate selects its tag
+          # set through the runner class, Playwright through --grep.
+          karate_test_for() {
+            if [ "$1" = smoke ]; then echo SmokeTest; else echo BookStoreApiTest; fi
+          }
+          grep_for() {
+            if [ "$1" = smoke ]; then echo "--grep @smoke"; else echo ""; fi
+          }
+
           case "$EVENT_NAME" in
             workflow_dispatch)
-              ENVIRONMENT="$INPUT_ENVIRONMENT"
-              SUITE="$INPUT_SUITE"
+              MODE="$INPUT_EXECUTION_MODE"
+              SUITE="$INPUT_TEST_SUITE"
               BROWSER="$INPUT_BROWSER"
-              PROMOTE=false
+              if [ "$MODE" = staging_to_prod ]; then
+                # The pipeline always starts at staging in this mode, so
+                # target_env is deliberately ignored.
+                ENVIRONMENT=staging
+                PROMOTE=true
+                # Production is verified with the same suite and browser.
+                VERIFY_SUITE="$SUITE"
+              else
+                ENVIRONMENT="$INPUT_TARGET_ENV"
+                PROMOTE=false
+                VERIFY_SUITE="$SUITE"
+              fi
               ;;
             push)
-              # CD: full regression on staging, then automatic promotion.
-              ENVIRONMENT=staging; SUITE=full; BROWSER=chromium; PROMOTE=true
+              # CD: full regression on staging, automatic promotion, smoke on production.
+              MODE=staging_to_prod
+              ENVIRONMENT=staging; SUITE=full; BROWSER=chromium
+              PROMOTE=true; VERIFY_SUITE=smoke
               ;;
             schedule)
-              ENVIRONMENT=staging; SUITE=full; BROWSER=all; PROMOTE=false
+              MODE=single_env
+              ENVIRONMENT=staging; SUITE=full; BROWSER=all
+              PROMOTE=false; VERIFY_SUITE=smoke
               ;;
             *)
               # pull_request: fast gate only.
-              ENVIRONMENT=staging; SUITE=smoke; BROWSER=chromium; PROMOTE=false
+              MODE=single_env
+              ENVIRONMENT=staging; SUITE=smoke; BROWSER=chromium
+              PROMOTE=false; VERIFY_SUITE=smoke
               ;;
           esac
 
@@ -99,16 +144,6 @@ jobs:
             BASE_URL="$PRODUCTION_BASE_URL"
           else
             BASE_URL="$STAGING_BASE_URL"
-          fi
-
-          # Karate selects its tag set through the runner class; Playwright
-          # through --grep. Both express the same smoke/full split.
-          if [ "$SUITE" = smoke ]; then
-            KARATE_TEST=SmokeTest
-            PLAYWRIGHT_GREP="--grep @smoke"
-          else
-            KARATE_TEST=BookStoreApiTest
-            PLAYWRIGHT_GREP=""
           fi
 
           if [ "$BROWSER" = all ]; then
@@ -122,11 +157,14 @@ jobs:
             echo "karate_env=$ENVIRONMENT"
             echo "base_url=$BASE_URL"
             echo "suite=$SUITE"
-            echo "karate_test=$KARATE_TEST"
-            echo "playwright_grep=$PLAYWRIGHT_GREP"
+            echo "karate_test=$(karate_test_for "$SUITE")"
+            echo "playwright_grep=$(grep_for "$SUITE")"
             echo "browsers=$BROWSERS"
             echo "promote=$PROMOTE"
             echo "production_base_url=$PRODUCTION_BASE_URL"
+            echo "verify_suite=$VERIFY_SUITE"
+            echo "verify_karate_test=$(karate_test_for "$VERIFY_SUITE")"
+            echo "verify_grep=$(grep_for "$VERIFY_SUITE")"
           } >> "$GITHUB_OUTPUT"
 
           {
@@ -135,15 +173,19 @@ jobs:
             echo "| Setting | Value |"
             echo "|---|---|"
             echo "| Trigger | $EVENT_NAME |"
+            echo "| Execution mode | $MODE |"
             echo "| Environment | $ENVIRONMENT ($BASE_URL) |"
             echo "| Suite | $SUITE |"
             echo "| Browsers | $BROWSERS |"
             echo "| Promote to production | $PROMOTE |"
+            if [ "$PROMOTE" = true ]; then
+              echo "| Production verification | $VERIFY_SUITE ($PRODUCTION_BASE_URL) |"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
   # ---------------------------------------------------------------------------
-  # Stage 1 - test the selected environment. On push to main that is staging;
-  # on workflow_dispatch it is whatever the operator picked.
+  # Stage A - test the selected environment. staging_to_prod always starts here
+  # on staging; single_env runs here and stops.
   # ---------------------------------------------------------------------------
   api-tests:
     name: API (Karate) - ${{ needs.config.outputs.environment }} - ${{ needs.config.outputs.suite }}
@@ -216,7 +258,9 @@ jobs:
           retention-days: 14
 
   # ---------------------------------------------------------------------------
-  # Stage 2 - promotion. Reached only when the whole staging gate is green.
+  # Stage B - promotion. Reached only when the whole staging gate is green, and
+  # only when the run is a promoting one: a push to main, or an operator who
+  # chose staging_to_prod. single_env never gets here.
   # ---------------------------------------------------------------------------
   promote-to-production:
     name: Promote to production
@@ -236,10 +280,11 @@ jobs:
           #   ./scripts/deploy.sh production "${{ github.sha }}"
 
   # ---------------------------------------------------------------------------
-  # Stage 3 - post-deployment smoke on production, at both layers.
+  # Stage B, continued - post-deployment verification on production, at both
+  # layers, with the browsers stage A used.
   # ---------------------------------------------------------------------------
-  production-smoke-api:
-    name: Smoke - API (Karate) - production
+  production-verify-api:
+    name: Verify - API (Karate) - production - ${{ needs.config.outputs.verify_suite }}
     needs: [config, promote-to-production]
     runs-on: ubuntu-latest
     steps:
@@ -249,11 +294,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-      - name: Run Karate smoke suite
+      - name: Run Karate suite against production
         working-directory: karate
         run: >-
           mvn -B test
-          -Dtest=SmokeTest
+          -Dtest=${{ needs.config.outputs.verify_karate_test }}
           "-Dkarate.env=production"
           "-DbaseUrl=${{ needs.config.outputs.production_base_url }}"
       - uses: actions/upload-artifact@v4
@@ -263,8 +308,8 @@ jobs:
           path: karate/target/karate-reports/
           retention-days: 14
 
-  production-smoke-ui:
-    name: Smoke - Web (Playwright) - production - ${{ matrix.browser }}
+  production-verify-ui:
+    name: Verify - Web (Playwright) - production - ${{ matrix.browser }}
     needs: [config, promote-to-production]
     runs-on: ubuntu-latest
     strategy:
@@ -288,11 +333,11 @@ jobs:
         if: matrix.browser == 'msedge'
         working-directory: playwright
         run: npx playwright install --with-deps msedge
-      - name: Run Playwright smoke suite
+      - name: Run Playwright suite against production
         working-directory: playwright
         env:
           BASE_URL: ${{ needs.config.outputs.production_base_url }}
-        run: npx playwright test --project=${{ matrix.browser }} --grep @smoke
+        run: npx playwright test --project=${{ matrix.browser }} ${{ needs.config.outputs.verify_grep }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:

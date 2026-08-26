@@ -108,25 +108,42 @@ Reports land in `karate/target/karate-reports/karate-summary.html`.
 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) is a staging-to-production
 delivery pipeline. A single `config` job resolves *which environment, which suite,
-which browsers* from the trigger, and every other job reads its parameters from
-there — so there is one place to change, not six.
+which browsers, and does this run promote* from the trigger and inputs, and every
+other job reads its parameters from there — so there is one place to change, not six.
 
 **On push to `main`** the full Karate and Playwright suites run against **staging**.
 Only if both are green does `promote-to-production` deploy, and post-deployment
 **smoke** tests then run against production at both layers — API and UI.
 
 ```
-config → api-tests (staging) → ui-tests (staging) → promote → ┬ smoke: API  (production)
-                                                              └ smoke: Web  (production)
+config → api-tests (staging) → ui-tests (staging) → promote → ┬ verify: API (production)
+                                                              └ verify: Web (production)
 ```
 
-**Run it by hand** from the Actions tab (*Run workflow*), which offers three dropdowns:
+**Run it by hand** from the Actions tab (*Run workflow*), which offers four dropdowns:
 
 | Input | Options | Wired to |
 |---|---|---|
+| Execution mode | `single_env`, `staging_to_prod` | whether the promotion stage runs at all |
 | Target environment | `staging`, `production` | `-Dkarate.env=…` and `BASE_URL` |
 | Test suite | `smoke`, `full` | `-Dtest=SmokeTest` or `-Dtest=BookStoreApiTest`, `--grep @smoke` |
 | Browser | `chromium`, `firefox`, `webkit`, `msedge`, `all` | `--project=…` (a matrix leg each; `all` runs the four in parallel) |
+
+The two modes:
+
+* **`single_env`** — run the chosen suite and browsers against **target environment**
+  and stop. Nothing is promoted and no production job runs, whether the target was
+  staging or production. This is the mode for "re-run the API suite against
+  production in Edge" without touching a deployment.
+* **`staging_to_prod`** — the manual equivalent of the push flow. Stage A runs the
+  chosen suite and browsers against staging; only if it is green does stage B
+  promote and then verify production with **the same suite and browsers**. Target
+  environment is ignored here, because this mode always starts at staging.
+
+The one asymmetry worth knowing: an automatic promotion from a push to `main` runs
+`full` on staging but verifies production with `smoke`, keeping the post-deploy check
+fast. A `staging_to_prod` run verifies with whatever suite the operator picked, since
+they asked for it explicitly.
 
 Other triggers keep their previous behaviour: a pull request runs the smoke gate on
 staging in chromium, and the nightly schedule runs the full suite on staging across
