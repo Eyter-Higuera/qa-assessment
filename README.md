@@ -175,15 +175,15 @@ promoted, no branch moves, nothing is deployed. Tick it and the same run continu
 from there in order, running your chosen suite and browsers at each test stage it
 reaches.
 
-Promote also gates the deployment, not just branch movement. Running from `main` with
-it unticked verifies production with the smoke suite and deploys nothing, which is the
-mode for "is production still healthy?". Ticking it deploys first, then verifies.
+*Promote* governs promotion **between branches**, so it has no effect when you run
+from `main` — there is nowhere further to promote to. Entering at stage 3 deploys
+either way: running this workflow from `main` is a deployment, not a dry run.
 
 | Run from | Promote off | Promote on |
 |---|---|---|
 | `eyter_dev` | dev tests | dev → release → deploy → smoke |
 | `release` | release tests | release → deploy → smoke |
-| `main` | production smoke, no deploy | deploy, then production smoke |
+| `main` | deploy, then production smoke | deploy, then production smoke |
 
 Other triggers: a pull request runs the smoke gate on dev in chromium, and the nightly
 schedule runs the full suite across all four browsers on dev. Neither promotes.

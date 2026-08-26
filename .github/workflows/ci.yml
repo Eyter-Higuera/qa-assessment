@@ -38,7 +38,8 @@ run-name: >-
 # The branch you run from picks the ENTRY POINT, and the run continues from
 # there: eyter_dev enters at stage 1, release at stage 2, main at stage 3.
 # Stages before the entry point are skipped, and the order of everything after
-# it is unchanged.
+# it is unchanged. Entering at stage 3 deploys - running this workflow from main
+# is a deployment, not a dry run.
 #
 # Because a skipped job normally skips everything that needs it, the stages that
 # can be entered directly test `needs.<previous>.result` explicitly instead of
@@ -77,7 +78,7 @@ on:
           - msedge
           - all
       promote:
-        description: 'Promote onward from this branch (and deploy, when run from main)'
+        description: 'Promote onward from this branch if its tests pass'
         type: boolean
         default: false
 
@@ -206,14 +207,6 @@ jobs:
             fi
           }
 
-          # Entering at production without ticking promote verifies the live site
-          # and deliberately deploys nothing.
-          if [ "$START_STAGE" = production ] && [ "$RUN_CHAIN" != true ]; then
-            PRODUCTION_DESC="smoke only, no deploy - $PRODUCTION_BASE_URL"
-          else
-            PRODUCTION_DESC="deploy, then smoke - $PRODUCTION_BASE_URL"
-          fi
-
           {
             echo "### Run configuration"
             echo ""
@@ -227,7 +220,7 @@ jobs:
             echo "|---|---|"
             row 1 "1. dev" "$SUITE on $(json_browsers "$BROWSER") - $DEV_BASE_URL"
             row 2 "2. release" "$RELEASE_SUITE on $(json_browsers "$RELEASE_BROWSER") - $RELEASE_BASE_URL"
-            row 3 "3. production" "$PRODUCTION_DESC"
+            row 3 "3. production" "deploy, then smoke - $PRODUCTION_BASE_URL"
           } >> "$GITHUB_STEP_SUMMARY"
 
   # ---------------------------------------------------------------------------
@@ -325,10 +318,11 @@ jobs:
           git push origin "${{ github.sha }}:refs/heads/$TARGET"
 
   # ---------------------------------------------------------------------------
-  # Stage 3 - production. Deploying is a mutation, so it needs the same explicit
-  # permission as moving a branch: either the run promoted its way here, or it
-  # started from main with the promote box ticked. Entering from main without
-  # ticking it runs the smoke suite against production and nothing else.
+  # Stage 3 - production. Reached two ways, and both deploy: the run promoted
+  # its way here from release, or it started from main, which makes production
+  # its entry point. Running the workflow from main is therefore a deploying
+  # action in its own right, with or without the promote box - that box governs
+  # promotion between branches, and main has nowhere further to promote to.
   # ---------------------------------------------------------------------------
   deploy-production:
     name: 3. Deploy to production
@@ -337,8 +331,7 @@ jobs:
       !cancelled() &&
       needs.config.result == 'success' &&
       ( needs.promote-to-main.result == 'success' ||
-        ( needs.config.outputs.start_stage == 'production' &&
-          needs.config.outputs.run_chain == 'true' ) )
+        needs.config.outputs.start_stage == 'production' )
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -352,14 +345,9 @@ jobs:
   production-smoke:
     name: 3b. Production smoke
     needs: [config, deploy-production]
-    # Runs after a deployment, or on its own when main is the entry point and
-    # nothing was deployed. Never runs when a deployment was attempted and failed.
-    if: >-
-      !cancelled() &&
-      needs.config.result == 'success' &&
-      needs.deploy-production.result != 'failure' &&
-      ( needs.deploy-production.result == 'success' ||
-        needs.config.outputs.start_stage == 'production' )
+    # No condition needed: every path into stage 3 now deploys first, so the
+    # default needs-semantics say exactly the right thing - verify a deployment
+    # that succeeded, and skip when there was none or it failed.
     uses: ./.github/workflows/test-stage.yml
     with:
       environment: production
