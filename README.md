@@ -117,7 +117,7 @@ config → 1. dev tests → promote to release → 2. release tests → promote 
 
 | Stage | Environment | Runs |
 |---|---|---|
-| 1. dev | dev | full suite, chromium |
+| 1. dev | dev | regression suite, chromium |
 | 2. release | release | full regression, all four browsers |
 | 3. production | production | deploy, then smoke (API + UI) |
 
@@ -163,7 +163,7 @@ protection refuses pushes from that token; the promote jobs prefer it when prese
 
 | Input | Options | Wired to |
 |---|---|---|
-| Test suite | `smoke`, `full` | `-Dtest=SmokeTest` or `-Dtest=BookStoreApiTest`, `--grep @smoke` |
+| Test suite | `smoke`, `regression` | `-Dtest=SmokeTest` or `-Dtest=BookStoreApiTest`, `--grep @smoke` |
 | Browser | `chromium`, `firefox`, `webkit`, `msedge`, `all` | `--project=…` (a matrix leg each; `all` runs the four in parallel) |
 | Promote | off by default | whether the run continues past its entry stage |
 

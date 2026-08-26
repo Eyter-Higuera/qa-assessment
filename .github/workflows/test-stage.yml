@@ -16,7 +16,7 @@ on:
         type: string
         required: true
       suite:
-        description: 'smoke or full'
+        description: 'smoke or regression'
         type: string
         required: true
       browsers:
@@ -37,7 +37,8 @@ jobs:
           cache: maven
       - name: Run Karate suite
         working-directory: karate
-        # Karate selects its tag set through the runner class.
+        # Karate selects its tag set through the runner class: anything that is
+        # not 'smoke' runs the whole suite.
         run: >-
           mvn -B test
           -Dtest=${{ inputs.suite == 'smoke' && 'SmokeTest' || 'BookStoreApiTest' }}

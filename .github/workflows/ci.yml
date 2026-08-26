@@ -65,7 +65,7 @@ on:
         default: smoke
         options:
           - smoke
-          - full
+          - regression
       browser:
         description: 'Playwright browser'
         type: choice
@@ -148,8 +148,8 @@ jobs:
               # stage 1 and runs the chain end to end. Coverage widens as the
               # commit approaches production: one browser on the development
               # gate to keep it fast, all four before production.
-              SUITE=full;  BROWSER=chromium
-              RELEASE_SUITE=full; RELEASE_BROWSER=all
+              SUITE=regression;  BROWSER=chromium
+              RELEASE_SUITE=regression; RELEASE_BROWSER=all
               RUN_CHAIN=true
               ;;
             workflow_dispatch)
@@ -163,8 +163,8 @@ jobs:
               ;;
             schedule)
               START_STAGE=dev
-              SUITE=full;  BROWSER=all
-              RELEASE_SUITE=full; RELEASE_BROWSER=all
+              SUITE=regression;  BROWSER=all
+              RELEASE_SUITE=regression; RELEASE_BROWSER=all
               RUN_CHAIN=false
               ;;
             *)
