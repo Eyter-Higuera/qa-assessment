@@ -4,16 +4,23 @@ name: QA Automation
 # inputs and vars contexts - no job outputs. The entry stage is therefore taken
 # straight from the ref rather than from the config job that derives it.
 #
+# The push arm deliberately does NOT use github.event.head_commit.message. That
+# field is the whole commit message, body included, and GitHub's expression
+# language has no split or substring function - only contains, startsWith,
+# endsWith, format, join, toJSON, fromJSON and hashFiles - so there is no way to
+# take its first line or cut it to 50 characters here. The SHA is bounded, so
+# the title stays a predictable length instead of growing with the message.
+#
 # `a && b || c` is GitHub's ternary: && yields its right side when the left is
 # truthy, || yields the first truthy operand. Every format() here returns a
 # non-empty string, so each branch is truthy and the chain falls through
 # correctly to the last arm.
 run-name: >-
   ${{ github.event_name == 'workflow_dispatch'
-        && format('[STAGE: {0}] - {1} on {2} (Promote: {3})',
-                  github.ref_name, inputs.test_suite, inputs.browser, inputs.promote)
+        && format('[MANUAL: {0}] - {1} on {2}',
+                  github.ref_name, inputs.test_suite, inputs.browser)
    || github.event_name == 'push'
-        && format('[PUSH: {0}] - {1}', github.ref_name, github.event.head_commit.message)
+        && format('[PUSH: {0}] - {1}', github.ref_name, github.sha)
    || github.event_name == 'pull_request'
         && format('[PR #{0}] - {1}', github.event.pull_request.number, github.event.pull_request.title)
    || format('[{0}: {1}] - nightly full regression', github.event_name, github.ref_name) }}
