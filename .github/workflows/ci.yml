@@ -83,10 +83,15 @@ on:
         default: false
 
 concurrency:
-  # A promotion run moves branches, so never cancel one in flight. Queueing also
-  # keeps two chains from promoting different commits at the same time.
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  # Superseded runs on a branch are cancelled rather than queued behind the one
+  # in flight, so a run that wedges cannot block every run after it.
+  #
+  # The trade-off, deliberately accepted: this can cancel a promotion mid-chain,
+  # leaving release advanced and main not. The fast-forward push makes that safe
+  # to recover from - re-running promotes the same commit, and a target that has
+  # moved on is rejected rather than rewritten.
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
