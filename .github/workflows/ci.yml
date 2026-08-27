@@ -4,13 +4,20 @@ name: QA Automation
 # inputs and vars contexts - no job outputs. The entry stage is therefore taken
 # straight from the ref rather than from the config job that derives it.
 #
-# The push arm carries the full SHA rather than a quoted commit subject and a
-# short SHA, because neither is expressible here. run-name is evaluated before
-# any job starts, and GitHub's expression language has no split and no substring
-# function - only contains, startsWith, endsWith, format, join, toJSON, fromJSON
-# and hashFiles. There is no way to take the first line of a commit message or
-# to shorten a 40-character SHA. The config job computes both in bash and puts
-# them in the run summary, which is the nearest place they can actually exist.
+# No SHA appears in any title, because a SHA here can only ever be all forty
+# characters. run-name is evaluated before any job starts, and the expression
+# language has no substring function - the complete list is contains,
+# startsWith, endsWith, format, join, toJSON, fromJSON and hashFiles, plus the
+# status checks. There is no substr, no slice, no split; writing one fails the
+# run with "Unrecognized function". For the same reason the push arm carries the
+# whole commit message rather than its first line.
+#
+# The short SHA and the commit subject are computed in bash in the config job
+# and printed at the top of the run summary, which is the nearest place they
+# can actually exist. The Actions list also shows the commit separately.
+#
+# The fallback arm uses the run number: when a push carries no head_commit
+# message there is nothing short left to identify it with.
 #
 # `a && b || c` is GitHub's ternary: && yields its right side when the left is
 # truthy, || yields the first truthy operand. Every format() here returns a
@@ -29,7 +36,11 @@ run-name: >-
             || format('[MANUAL: {0}] - [API + UI] - {1} on {2}',
                       github.ref_name, inputs.test_suite, inputs.browser) )
    || github.event_name == 'push'
-        && format('[PUSH: {0}] - [API + UI] - {1}', github.ref_name, github.sha)
+        && ( github.event.head_commit.message
+               && format('[PUSH: {0}] - [API + UI] - "{1}"',
+                         github.ref_name, github.event.head_commit.message)
+            || format('[PUSH: {0}] - [API + UI] - run #{1}',
+                      github.ref_name, github.run_number) )
    || github.event_name == 'pull_request'
         && format('[PR #{0}] - [API + UI] - {1}', github.event.pull_request.number, github.event.pull_request.title)
    || format('[{0}: {1}] - [API + UI] - nightly full regression', github.event_name, github.ref_name) }}
