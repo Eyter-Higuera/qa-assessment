@@ -5,6 +5,8 @@
   "description": "Playwright UI automation for the demoqa.com Book Store application",
   "scripts": {
     "test": "playwright test --project=chromium",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
     "test:headed": "playwright test --project=chromium --headed",
     "test:smoke": "playwright test --project=chromium --grep @smoke",
     "test:e2e": "playwright test --project=chromium --grep @e2e",
@@ -15,6 +17,7 @@
   "devDependencies": {
     "@playwright/test": "^1.49.0",
     "@types/node": "^22.10.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.11"
   }
 }

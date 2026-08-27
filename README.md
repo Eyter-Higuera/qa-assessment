@@ -40,6 +40,7 @@ documented with reproduction steps in Appendix B of the assessment document.
 ```bash
 cd playwright
 npm ci
+npm run test:unit           # unit tests only - no browser needed
 npx playwright install chromium
 npm test                    # full suite, chromium
 npm run test:smoke          # @smoke only
@@ -114,6 +115,17 @@ runs as **one ordered workflow run**. Every stage is wired to the one before it 
 config → 1. dev tests → promote to release → 2. release tests → promote to main
                                                 → 3. deploy production → smoke
 ```
+
+Each of those stages is itself a fail-fast chain, cheapest gate first:
+
+```
+unit (Vitest) → api (Karate) → ui (Playwright, one leg per browser)
+```
+
+Unit tests touch no browser, no network and no demoqa.com, so a failure there is
+unambiguously our code and lands in seconds. A failed unit job skips the API suite;
+a failed API suite skips every browser leg — with `all browsers` selected that is
+four runners not spent learning what the first job already knew.
 
 | Stage | Environment | Runs |
 |---|---|---|
