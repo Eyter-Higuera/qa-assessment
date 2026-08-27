@@ -165,7 +165,7 @@ protection refuses pushes from that token; the promote jobs prefer it when prese
 |---|---|---|
 | Test suite | `smoke`, `regression` | `-Dtest=SmokeTest` or `-Dtest=BookStoreApiTest`, `--grep @smoke` |
 | Browser | `chromium`, `firefox`, `webkit`, `msedge`, `all` | `--project=…` (a matrix leg each; `all` runs the four in parallel) |
-| Promote | off by default | whether the run continues past its entry stage |
+| Promote | off by default, `eyter_dev` only | whether the run continues past its entry stage |
 
 *Use workflow from* is the fourth input in everything but name: it chooses the entry
 stage, which is why there is no target-environment dropdown.
@@ -175,9 +175,20 @@ promoted, no branch moves, nothing is deployed. Tick it and the same run continu
 from there in order, running your chosen suite and browsers at each test stage it
 reaches.
 
-*Promote* governs promotion **between branches**, so it has no effect when you run
-from `main` — there is nowhere further to promote to. Entering at stage 3 deploys
-either way: running this workflow from `main` is a deployment, not a dry run.
+**Promotion is bound to `eyter_dev`.** Ticking *Promote* on a run started from
+`release`, `main` or a feature branch fails the run in seconds, before any suite
+starts:
+
+> Promotion is only allowed when triggered from the eyter_dev branch.
+
+That guard matters most in the case that looks harmless. A feature branch enters at
+the dev stage exactly like `eyter_dev` does, so without it a green feature-branch
+run would push its own commit straight at `release` — a commit that never passed the
+dev gate as the chain defines it. Manual runs from `release` and `main` are for
+testing those stages, not for promoting out of them.
+
+Entering at stage 3 still deploys, promote or not: running this workflow from `main`
+is a deployment, not a dry run.
 
 Stage 3 verifies with the suite you selected. A manual run choosing `regression`
 runs the regression suite against production after deploying; anything automated —
