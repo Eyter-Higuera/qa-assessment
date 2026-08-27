@@ -44,6 +44,16 @@ jobs:
           -Dtest=${{ inputs.suite == 'smoke' && 'SmokeTest' || 'BookStoreApiTest' }}
           "-Dkarate.env=${{ inputs.environment }}"
           "-DbaseUrl=${{ inputs.base_url }}"
+      # Renders on the run summary page, so a failure is readable without
+      # downloading and unzipping the report. `always()` because the summary
+      # matters most exactly when the step before it failed.
+      - name: Publish Karate results to the run summary
+        if: always()
+        run: >-
+          python3 .github/scripts/junit-summary.py
+          "Karate - ${{ inputs.environment }} - ${{ inputs.suite }}"
+          'karate/target/karate-reports/*.xml'
+          >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -116,6 +126,13 @@ jobs:
         run: >-
           npx playwright test --project=${{ matrix.browser }}
           ${{ inputs.suite == 'smoke' && '--grep @smoke' || '' }}
+      - name: Publish Playwright results to the run summary
+        if: always()
+        run: >-
+          python3 .github/scripts/junit-summary.py
+          "Playwright - ${{ inputs.environment }} - ${{ inputs.suite }} - ${{ matrix.browser }}"
+          'playwright/test-results/junit.xml'
+          >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

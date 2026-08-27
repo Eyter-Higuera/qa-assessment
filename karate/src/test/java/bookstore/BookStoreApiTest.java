@@ -19,6 +19,7 @@ class BookStoreApiTest {
         Results results = Runner.path("classpath:bookstore")
                 .tags("~@ignore")          // reusable call-only features are excluded
                 .outputCucumberJson(true)  // consumed by the CI reporter
+                .outputJunitXml(true)      // per-scenario XML for the run summary
                 .parallel(5);              // each scenario owns its own account, so this is safe
         assertEquals(0, results.getFailCount(), results.getErrorMessages());
     }

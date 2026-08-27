@@ -14,6 +14,7 @@ class SmokeTest {
         Results results = Runner.path("classpath:bookstore")
                 .tags("@smoke", "~@ignore")
                 .outputCucumberJson(true)
+                .outputJunitXml(true)      // per-scenario XML for the run summary
                 .parallel(3);
         assertEquals(0, results.getFailCount(), results.getErrorMessages());
     }

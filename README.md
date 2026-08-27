@@ -227,8 +227,28 @@ repository settings without touching the workflow — and because the chain is o
 that approval now pauses the pipeline rather than letting later stages race ahead. The
 deploy step is a labelled placeholder — this repository has nothing of its own to ship.
 
-Reports are uploaded for **every** environment: `karate-reports-<env>` and
-`playwright-report-<env>-<browser>`, retained 14 days.
+Every stage writes a results table to the **run summary page**, so a failure is
+readable without downloading anything:
+
+```
+## Playwright - dev - smoke - chromium
+passed - 5 tests in 19.5s: 5 passed, 0 failed, 0 skipped
+
+| Suite                | Passed | Failed | Skipped | Duration |
+| login.spec.ts        |      3 |      0 |       0 |    15.8s |
+| registration.spec.ts |      2 |      0 |       0 |     3.7s |
+```
+
+When something fails, a second table lists each failing test with the first line
+of its error. Both suites feed the same reader
+([`.github/scripts/junit-summary.py`](.github/scripts/junit-summary.py)) because both
+emit JUnit XML — Playwright through its `junit` reporter, Karate through
+`outputJunitXml(true)` on the runners. The step runs under `if: always()`, since the
+summary matters most exactly when the suite before it failed.
+
+The full HTML reports are still uploaded for every environment —
+`karate-reports-<env>` and `playwright-report-<env>-<browser>`, retained 14 days —
+for when the summary is not enough and you want the trace viewer.
 
 ## Repository layout
 
