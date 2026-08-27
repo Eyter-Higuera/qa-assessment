@@ -1,0 +1,106 @@
+name: QA Automation (push)
+
+# Why this file exists at all.
+#
+# run-name is evaluated when a run is created, before any job exists, and the
+# expression language cannot cut a SHA to seven characters or take the first
+# line of a commit message. A push therefore cannot title its own run with them.
+#
+# So the push path is two runs. The first (on: push) computes both in a shell
+# and dispatches this same workflow back at itself; the second (on:
+# workflow_dispatch) receives them as plain strings and can put them in its
+# title, then runs the pipeline by calling ci.yml.
+#
+# The internal inputs live here rather than on ci.yml so that the manual
+# "Run workflow" popup for QA Automation stays down to the three fields that are
+# actually decisions. Nobody is meant to run THIS workflow by hand.
+
+run-name: >-
+  ${{ github.event_name == 'push'
+        && format('[push] {0} - starting the pipeline', github.ref_name)
+   || format('[PUSH: {0}] - [API + UI] - "{1}" ({2})',
+             github.ref_name, inputs.commit_subject, inputs.short_sha) }}
+
+on:
+  push:
+    branches: [eyter_dev]
+  workflow_dispatch:
+    inputs:
+      commit_subject:
+        description: 'internal - set by the push job, do not run this by hand'
+        type: string
+        required: true
+      short_sha:
+        description: 'internal - set by the push job, do not run this by hand'
+        type: string
+        required: true
+
+concurrency:
+  group: push-pipeline-${{ github.ref_name }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  # --- first run: on the push itself ----------------------------------------
+  start:
+    name: Start the pipeline
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Required to dispatch a workflow.
+      actions: write
+    steps:
+      - name: Derive the short SHA and commit subject
+        id: commit
+        env:
+          SHA: ${{ github.sha }}
+          # Through the environment, never interpolated into the script: on a
+          # public repository a commit message is attacker-controlled text.
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          set -euo pipefail
+          SHORT_SHA=$(echo "$SHA" | cut -c1-7)
+          # head -1 is the whole point - the body must not reach the title.
+          SUBJECT=$(printf '%s' "${COMMIT_MESSAGE:-}" | head -1)
+          [ -n "$SUBJECT" ] || SUBJECT="(no commit message)"
+          {
+            echo "short_sha=$SHORT_SHA"
+            echo "subject=$SUBJECT"
+          } >> "$GITHUB_OUTPUT"
+          echo "Starting the pipeline for \"$SUBJECT\" ($SHORT_SHA)."
+
+      - name: Dispatch the titled run
+        env:
+          # workflow_dispatch and repository_dispatch are the two events the
+          # default GITHUB_TOKEN may still trigger; every other event it raises
+          # is ignored, to prevent exactly the recursion this relies on.
+          GH_TOKEN: ${{ secrets.PROMOTION_TOKEN || secrets.GITHUB_TOKEN }}
+          SHORT_SHA: ${{ steps.commit.outputs.short_sha }}
+          SUBJECT: ${{ steps.commit.outputs.subject }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          gh workflow run "QA Automation (push)" \
+            --repo "$REPO" \
+            --ref "$BRANCH" \
+            -f commit_subject="$SUBJECT" \
+            -f short_sha="$SHORT_SHA"
+
+  # --- second run: the one with the title -----------------------------------
+  pipeline:
+    name: Pipeline
+    if: github.event_name == 'workflow_dispatch'
+    permissions:
+      # Capped ceiling for ci.yml's jobs; the promote jobs need to push.
+      contents: write
+    secrets: inherit
+    uses: ./.github/workflows/ci.yml
+    with:
+      # A push runs the dev gate broadly on one browser, promotes, and confirms
+      # production with smoke. These are the values ci.yml used to hard-code in
+      # its own `push` arm before that trigger moved here.
+      origin_event: push
+      test_suite: regression
+      browser: chromium
+      promote: true
