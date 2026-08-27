@@ -376,14 +376,26 @@ jobs:
       - name: Fast-forward release to the tested commit
         env:
           TARGET: release
+          SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          echo "Dev stage green - promoting ${{ github.sha }} to $TARGET."
+          echo "Dev stage green - promoting $SHA to $TARGET."
+
+          git fetch --quiet origin "$TARGET"
+
+          # Two different things look identical to `git push`: a target that has
+          # moved PAST this commit, and a target that has diverged AWAY from it.
+          # Only the second is a problem worth failing over.
+          if git merge-base --is-ancestor "$SHA" "origin/$TARGET"; then
+            echo "::notice title=Promotion already satisfied::$TARGET is at $(git rev-parse --short "origin/$TARGET"), which already contains $SHA. A later run promoted past this one; nothing to do."
+            exit 0
+          fi
+
           # Pushing the tested SHA straight at the target ref means the tree that
-          # lands is byte-for-byte the tree that passed. Git rejects the push if
-          # $TARGET has diverged, which is the right outcome: better a loud
+          # lands is byte-for-byte the tree that passed. If $TARGET has genuinely
+          # diverged git rejects this, which is the right outcome: better a loud
           # failure than a merge commit no stage has ever run against.
-          git push origin "${{ github.sha }}:refs/heads/$TARGET"
+          git push origin "$SHA:refs/heads/$TARGET"
 
   # ---------------------------------------------------------------------------
   # Stage 2 - release. Runs either because stage 1 promoted into it, or because
@@ -428,10 +440,26 @@ jobs:
       - name: Fast-forward main to the tested commit
         env:
           TARGET: main
+          SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          echo "Release stage green - promoting ${{ github.sha }} to $TARGET."
-          git push origin "${{ github.sha }}:refs/heads/$TARGET"
+          echo "Release stage green - promoting $SHA to $TARGET."
+
+          git fetch --quiet origin "$TARGET"
+
+          # Two different things look identical to `git push`: a target that has
+          # moved PAST this commit, and a target that has diverged AWAY from it.
+          # Only the second is a problem worth failing over.
+          if git merge-base --is-ancestor "$SHA" "origin/$TARGET"; then
+            echo "::notice title=Promotion already satisfied::$TARGET is at $(git rev-parse --short "origin/$TARGET"), which already contains $SHA. A later run promoted past this one; nothing to do."
+            exit 0
+          fi
+
+          # Pushing the tested SHA straight at the target ref means the tree that
+          # lands is byte-for-byte the tree that passed. If $TARGET has genuinely
+          # diverged git rejects this, which is the right outcome: better a loud
+          # failure than a merge commit no stage has ever run against.
+          git push origin "$SHA:refs/heads/$TARGET"
 
   # ---------------------------------------------------------------------------
   # Stage 3 - production. Reached two ways, and both deploy: the run promoted
