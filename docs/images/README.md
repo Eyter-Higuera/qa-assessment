@@ -1,12 +1,21 @@
 # Screenshots for the testing manual
 
 The manual in [`../../README.md`](../../README.md) references the images below.
-They are intentionally not committed — capture them yourself and drop them in
-here, and both the README and `testing_manual_report.pdf` pick them up with no
-further changes.
+Every one of them exists as a **generated placeholder** — a labelled card naming
+the capture and the command that produces it — so nothing renders broken before
+the real screenshots are taken. Replacing one is just dropping the real capture
+over it under the same filename; both the README and
+`testing_manual_report.pdf` pick it up with no further changes.
 
-Until a file exists, the PDF renders a labelled placeholder box in its place
-rather than a broken image, so the report is always publishable.
+Regenerate the placeholders with:
+
+```bash
+python ../../scripts/make_placeholder_images.py           # only what is missing
+python ../../scripts/make_placeholder_images.py --force   # rewrite every one
+```
+
+Without `--force` an existing file is left alone, so the generator can never
+overwrite a real capture.
 
 | File | What to capture |
 |---|---|

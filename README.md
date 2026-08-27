@@ -99,7 +99,9 @@ the runner's and not a later script's reading of a report. Read the figure as *"
 pure logic is covered"*, not *"the project is covered"* — the covered surface is
 deliberately small.
 
-![Unit test coverage in the terminal](docs/images/local-unit-coverage.png)
+<p align="center">
+  <img src="docs/images/local-unit-coverage.png" width="100%" alt="Unit test coverage in the terminal" />
+</p>
 
 #### API tests (Karate)
 
@@ -124,7 +126,9 @@ mvn test -Dtest=SmokeTest -Dkarate.env=dev
 mvn test '-Dtest=SmokeTest' '-Dkarate.env=dev'
 ```
 
-![Karate smoke against dev](docs/images/local-karate-dev.png)
+<p align="center">
+  <img src="docs/images/local-karate-dev.png" width="100%" alt="Karate smoke against dev" />
+</p>
 
 **Release** — full regression:
 
@@ -135,7 +139,9 @@ mvn test -Dtest=BookStoreApiTest -Dkarate.env=release
 mvn test '-Dtest=BookStoreApiTest' '-Dkarate.env=release'
 ```
 
-![Karate regression against release](docs/images/local-karate-release.png)
+<p align="center">
+  <img src="docs/images/local-karate-release.png" width="100%" alt="Karate regression against release" />
+</p>
 
 **Production** — smoke, with an explicit host:
 
@@ -146,7 +152,9 @@ mvn test -Dtest=SmokeTest -Dkarate.env=production -DbaseUrl=https://demoqa.com
 mvn test '-Dtest=SmokeTest' '-Dkarate.env=production' '-DbaseUrl=https://demoqa.com'
 ```
 
-![Karate smoke against production](docs/images/local-karate-production.png)
+<p align="center">
+  <img src="docs/images/local-karate-production.png" width="100%" alt="Karate smoke against production" />
+</p>
 
 `-Dtest` picks the runner class and therefore the tag set: `SmokeTest` runs `@smoke`,
 `BookStoreApiTest` runs everything. Reports land in
@@ -168,7 +176,9 @@ BASE_URL=https://demoqa.com npx playwright test --project=chromium --grep @smoke
 $env:BASE_URL='https://demoqa.com'; npx playwright test --project=chromium --grep @smoke
 ```
 
-![Playwright smoke against dev](docs/images/local-playwright-dev.png)
+<p align="center">
+  <img src="docs/images/local-playwright-dev.png" width="100%" alt="Playwright smoke against dev" />
+</p>
 
 **Release** — regression across every browser:
 
@@ -179,7 +189,9 @@ BASE_URL=https://demoqa.com npx playwright test --project=chromium --project=fir
 $env:BASE_URL='https://demoqa.com'; npx playwright test --project=chromium --project=firefox --project=webkit --project=msedge
 ```
 
-![Playwright regression across browsers](docs/images/local-playwright-release.png)
+<p align="center">
+  <img src="docs/images/local-playwright-release.png" width="100%" alt="Playwright regression across browsers" />
+</p>
 
 **Production** — smoke on Edge:
 
@@ -190,7 +202,9 @@ BASE_URL=https://demoqa.com npx playwright test --project=msedge --grep @smoke
 $env:BASE_URL='https://demoqa.com'; npx playwright test --project=msedge --grep @smoke
 ```
 
-![Playwright smoke against production](docs/images/local-playwright-production.png)
+<p align="center">
+  <img src="docs/images/local-playwright-production.png" width="100%" alt="Playwright smoke against production" />
+</p>
 
 **UI mode** — pick and re-run tests interactively:
 
@@ -243,7 +257,9 @@ production is deployed and verified.
 With *Promote* unticked the run stops after the dev stage: nothing is promoted, no
 branch moves, nothing is deployed.
 
-![Scenario A — full chain from eyter_dev](docs/images/ci-scenario-a-eyter-dev.png)
+<p align="center">
+  <img src="docs/images/ci-scenario-a-eyter-dev.png" width="100%" alt="Scenario A — full chain from eyter_dev" />
+</p>
 
 #### Scenario B — running from `release` or `main`
 
@@ -263,7 +279,9 @@ promote or not, because `main` has nowhere further to promote to; and a `Pipelin
 result` job fails the run if production was deployed but its verification did not
 pass, so a deploy can never report green unverified.
 
-![Scenario B — single stage from release or main](docs/images/ci-scenario-b-release-main.png)
+<p align="center">
+  <img src="docs/images/ci-scenario-b-release-main.png" width="100%" alt="Scenario B — single stage from release or main" />
+</p>
 
 #### What the run summary shows
 
@@ -273,7 +291,9 @@ metric, then a Karate table and a Playwright table per stage — totals, a row p
 suite with pass/fail/skip counts and durations, and, when something fails, a second
 table naming each failing test with the first line of its error.
 
-![The GitHub job summary](docs/images/ci-job-summary.png)
+<p align="center">
+  <img src="docs/images/ci-job-summary.png" width="100%" alt="The GitHub job summary" />
+</p>
 
 <!-- testing-manual:end -->
 

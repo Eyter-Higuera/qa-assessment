@@ -178,16 +178,26 @@ def results_html(results: list[dict]) -> str:
     return "\n".join(out)
 
 
+IMG_TAG = re.compile(r"<img[^>]*>", re.I)
+ATTR = re.compile(r'(\w+)\s*=\s*"([^"]*)"')
+
+
 def placeholder_images(body: str) -> str:
-    """Swap missing screenshots for a labelled box instead of a broken image."""
+    """Swap missing screenshots for a labelled box instead of a broken image.
+
+    Attribute order is not assumed: the manual writes these as hand-rolled HTML
+    (src first, for the centred full-width form GitHub renders), while a plain
+    Markdown image would arrive alt-first.
+    """
     def swap(match):
-        alt, src = match.group(1), match.group(2)
-        if (ROOT / src).exists():
+        attrs = dict(ATTR.findall(match.group(0)))
+        src = attrs.get("src", "")
+        if not src or (ROOT / src).exists():
             return match.group(0)
         return ('<div class="shot"><span class="label">{}</span>'
                 '<span class="path">{}</span></div>').format(
-                    html.escape(alt), html.escape(src))
-    return re.sub(r'<img alt="([^"]*)" src="([^"]+)"\s*/?>', swap, body)
+                    html.escape(attrs.get("alt", "screenshot")), html.escape(src))
+    return IMG_TAG.sub(swap, body)
 
 
 def build_html(manual_md: str, results: list[dict]) -> str:
