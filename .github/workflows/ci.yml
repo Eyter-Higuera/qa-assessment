@@ -340,11 +340,60 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   # ---------------------------------------------------------------------------
+  # Build / validation. Runs once, before any environment is touched, and gates
+  # every entry point below. Unit tests assert pure logic - no browser, no
+  # network, no demoqa.com - so their result cannot differ between dev, release
+  # and production, and running them per stage only bought three identical
+  # answers to the same question.
+  # ---------------------------------------------------------------------------
+  unit-tests:
+    name: 0. Unit tests (Vitest)
+    needs: config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: playwright/package-lock.json
+      - name: Install dependencies
+        working-directory: playwright
+        run: npm ci
+      - name: Run unit tests with coverage
+        working-directory: playwright
+        # Vitest fails this step itself when coverage drops under the configured
+        # floor, so the gate is the runner's, not a later step's interpretation
+        # of a report.
+        run: npm run test:unit:coverage
+      - name: Publish unit results to the run summary
+        if: always()
+        run: >-
+          python3 .github/scripts/junit-summary.py
+          "Unit (Vitest)"
+          'playwright/test-results/unit-junit.xml'
+          >> "$GITHUB_STEP_SUMMARY"
+      - name: Publish coverage to the run summary
+        if: always()
+        run: >-
+          python3 .github/scripts/coverage-summary.py
+          playwright/coverage/coverage-summary.json 80
+          >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: unit-results
+          path: |
+            playwright/test-results/unit-junit.xml
+            playwright/coverage/
+          retention-days: 14
+
+  # ---------------------------------------------------------------------------
   # Stage 1 - dev. The entry point for eyter_dev, feature branches and PRs.
   # ---------------------------------------------------------------------------
   dev-tests:
     name: 1. Dev
-    needs: config
+    needs: [config, unit-tests]
     if: needs.config.outputs.start_stage == 'dev'
     uses: ./.github/workflows/test-stage.yml
     with:
@@ -404,10 +453,14 @@ jobs:
   # ---------------------------------------------------------------------------
   release-tests:
     name: 2. Release
-    needs: [config, promote-to-release]
+    needs: [config, unit-tests, promote-to-release]
+    # unit-tests is named explicitly because the status function below opts out
+    # of the implicit needs-success rule. Without it, entering the chain at
+    # release would walk straight past the gate.
     if: >-
       !cancelled() &&
       needs.config.result == 'success' &&
+      needs.unit-tests.result == 'success' &&
       ( needs.config.outputs.start_stage == 'release' ||
         needs.promote-to-release.result == 'success' )
     uses: ./.github/workflows/test-stage.yml
@@ -470,10 +523,11 @@ jobs:
   # ---------------------------------------------------------------------------
   deploy-production:
     name: 3. Deploy ${{ needs.config.outputs.short_sha }} to production
-    needs: [config, promote-to-main]
+    needs: [config, unit-tests, promote-to-main]
     if: >-
       !cancelled() &&
       needs.config.result == 'success' &&
+      needs.unit-tests.result == 'success' &&
       ( needs.promote-to-main.result == 'success' ||
         needs.config.outputs.start_stage == 'production' )
     runs-on: ubuntu-latest

@@ -25,56 +25,8 @@ on:
         required: true
 
 jobs:
-  # Cheapest gate first. No browser, no network, no demoqa.com - so when this
-  # fails it is unambiguously our code, and it says so in seconds rather than
-  # after a suite has spent minutes finding out through the live API.
-  unit:
-    name: Unit (Vitest) - ${{ inputs.environment }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '20'
-          cache: npm
-          cache-dependency-path: playwright/package-lock.json
-      - name: Install dependencies
-        working-directory: playwright
-        run: npm ci
-      - name: Run unit tests with coverage
-        working-directory: playwright
-        # Vitest fails this step itself when coverage drops under the configured
-        # floor, so the gate is the runner's, not a later step's interpretation
-        # of a report.
-        run: npm run test:unit:coverage
-      - name: Publish unit results to the run summary
-        if: always()
-        run: >-
-          python3 .github/scripts/junit-summary.py
-          "Unit (Vitest) - ${{ inputs.environment }}"
-          'playwright/test-results/unit-junit.xml'
-          >> "$GITHUB_STEP_SUMMARY"
-      - name: Publish coverage to the run summary
-        if: always()
-        run: >-
-          python3 .github/scripts/coverage-summary.py
-          playwright/coverage/coverage-summary.json 80
-          >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: unit-results-${{ inputs.environment }}
-          path: |
-            playwright/test-results/unit-junit.xml
-            playwright/coverage/
-          retention-days: 14
-
   api:
     name: API (Karate) - ${{ inputs.environment }} - ${{ inputs.suite }}
-    # No point asking a live service anything if the helpers that build the
-    # request are broken. A failed unit job skips this by the default
-    # needs-semantics.
-    needs: unit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

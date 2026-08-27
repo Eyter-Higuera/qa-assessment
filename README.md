@@ -117,15 +117,18 @@ config → 1. dev tests → promote to release → 2. release tests → promote 
                                                 → 3. deploy production → smoke
 ```
 
-Each of those stages is itself a fail-fast chain, cheapest gate first:
+Unit tests run **once**, before any environment is touched, and gate every entry
+point into the chain:
 
 ```
-unit (Vitest) → api (Karate) → ui (Playwright, one leg per browser)
+config → 0. unit (Vitest) → 1. dev → 2. release → 3. production
+                                api (Karate) → ui (Playwright, one leg per browser)
 ```
 
-Unit tests touch no browser, no network and no demoqa.com, so a failure there is
-unambiguously our code and lands in seconds. That job also carries a **coverage
-gate**: Vitest fails it if statements, branches, functions or lines drop under 80%,
+They assert pure logic — no browser, no network, no demoqa.com — so their answer
+cannot differ between dev, release and production, and running them per stage only
+bought three identical answers to the same question. Within each stage the browsers
+still wait on the API suite. That job also carries a **coverage gate**: Vitest fails it if statements, branches, functions or lines drop under 80%,
 and the run summary shows the four figures with a per-file breakdown.
 
 Coverage is scoped to the code unit tests are responsible for — `src/pages/**` and
