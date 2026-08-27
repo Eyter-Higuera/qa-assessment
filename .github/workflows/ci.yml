@@ -57,7 +57,8 @@ run-name: >-
 # `release` and `main` are deliberately NOT push triggers. They used to be, and
 # that is what made the stages race: pushing two branches starts two independent
 # runs, and each promotion push started a third. Enter those stages by running
-# the workflow manually from that branch.
+# the workflow manually from that branch - to test them, not to promote from
+# them. Promotion is bound to eyter_dev and the run fails fast anywhere else.
 
 on:
   push:
@@ -86,7 +87,7 @@ on:
           - msedge
           - all
       promote:
-        description: 'Promote onward from this branch if its tests pass'
+        description: 'Promote onward if tests pass (eyter_dev only; fails elsewhere)'
         type: boolean
         default: false
 
@@ -139,6 +140,17 @@ jobs:
           INPUT_PROMOTE: ${{ inputs.promote }}
         run: |
           set -euo pipefail
+
+          # --- promotion is bound to eyter_dev -------------------------------
+          # The chain is defined as starting at eyter_dev, so promoting from
+          # anywhere else would move branches from a commit that never passed
+          # the dev gate - a feature branch could push itself straight at
+          # release. Checked before anything else is resolved so the run fails
+          # in seconds rather than after a full suite.
+          if [ "$EVENT_NAME" = workflow_dispatch ]              && [ "$INPUT_PROMOTE" = true ]              && [ "$REF_NAME" != eyter_dev ]; then
+            echo "::error title=Promotion not allowed from this branch::Promotion is only allowed when triggered from the eyter_dev branch."
+            exit 1
+          fi
 
           json_browsers() {
             if [ "$1" = all ]; then
@@ -235,6 +247,10 @@ jobs:
             echo "### Run configuration"
             echo ""
             echo "Triggered by \`$EVENT_NAME\` on \`$REF_NAME\`, entering at **$START_STAGE**."
+            echo ""
+            echo "The dev -> release -> production chain runs only from \`eyter_dev\`."
+            echo "A manual run from \`release\` or \`main\` tests that stage and stops;"
+            echo "ticking promote there fails the run before any suite starts."
             if [ "$RUN_CHAIN" != true ]; then
               echo ""
               echo "Promotion is off: this run tests its entry stage and stops."
