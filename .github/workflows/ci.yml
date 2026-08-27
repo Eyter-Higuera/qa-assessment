@@ -104,7 +104,7 @@ on:
           - firefox
           - webkit
           - msedge
-          - all
+          - all browsers
       promote:
         description: 'Promote onward if tests pass (eyter_dev only; fails elsewhere)'
         type: boolean
@@ -208,7 +208,8 @@ jobs:
           fi
 
           json_browsers() {
-            if [ "$1" = all ]; then
+            # Quoted: the sentinel contains a space now.
+            if [ "$1" = "all browsers" ]; then
               echo '["chromium","firefox","webkit","msedge"]'
             else
               echo "[\"$1\"]"
@@ -231,7 +232,7 @@ jobs:
               # commit approaches production: one browser on the development
               # gate to keep it fast, all four before production.
               SUITE=regression;  BROWSER=chromium
-              RELEASE_SUITE=regression; RELEASE_BROWSER=all
+              RELEASE_SUITE=regression; RELEASE_BROWSER="all browsers"
               RUN_CHAIN=true
               ;;
             workflow_dispatch)
@@ -245,8 +246,8 @@ jobs:
               ;;
             schedule)
               START_STAGE=dev
-              SUITE=regression;  BROWSER=all
-              RELEASE_SUITE=regression; RELEASE_BROWSER=all
+              SUITE=regression;  BROWSER="all browsers"
+              RELEASE_SUITE=regression; RELEASE_BROWSER="all browsers"
               RUN_CHAIN=false
               ;;
             *)

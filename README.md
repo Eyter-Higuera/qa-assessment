@@ -164,7 +164,7 @@ protection refuses pushes from that token; the promote jobs prefer it when prese
 | Input | Options | Wired to |
 |---|---|---|
 | Test suite | `smoke`, `regression` | `-Dtest=SmokeTest` or `-Dtest=BookStoreApiTest`, `--grep @smoke` |
-| Browser | `chromium`, `firefox`, `webkit`, `msedge`, `all` | `--project=…` (a matrix leg each; `all` runs the four in parallel) |
+| Browser | `chromium`, `firefox`, `webkit`, `msedge`, `all browsers` | `--project=…` (a matrix leg each; `all browsers` runs the four in parallel) |
 | Promote | off by default, `eyter_dev` only | whether the run continues past its entry stage |
 
 *Use workflow from* is the fourth input in everything but name: it chooses the entry
