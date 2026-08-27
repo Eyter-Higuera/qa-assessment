@@ -40,14 +40,15 @@ name: QA Automation
 # the trap: that one is always a string, and 'false' is truthy, so a title built
 # from it would claim every manual run promotes.
 run-name: >-
-  ${{ github.event_name == 'workflow_dispatch'
+  ${{ inputs.origin_event == 'push'
+        && format('[PUSH: {0}] - [API + UI] - "{1}" ({2})',
+                  github.ref_name, inputs.commit_subject, inputs.short_sha)
+   || github.event_name == 'workflow_dispatch'
         && ( inputs.promote == true
                && format('[MANUAL: {0}] - Promote onward from this branch if its tests pass - [API + UI] - {1} on {2}',
                          github.ref_name, inputs.test_suite, inputs.browser)
             || format('[MANUAL: {0}] - [API + UI] - {1} on {2}',
                       github.ref_name, inputs.test_suite, inputs.browser) )
-   || github.event_name == 'push'
-        && format('[PUSH: {0}] - [API + UI] - (run #{1})', github.ref_name, github.run_number)
    || github.event_name == 'pull_request'
         && format('[PR #{0}] - [API + UI] - {1}', github.event.pull_request.number, github.event.pull_request.title)
    || format('[{0}: {1}] - [API + UI] - nightly full regression', github.event_name, github.ref_name) }}
@@ -80,8 +81,9 @@ run-name: >-
 # them. Promotion is bound to eyter_dev and the run fails fast anywhere else.
 
 on:
-  push:
-    branches: [eyter_dev]
+  # Not `push`. push-trigger.yml runs on the push and dispatches this workflow
+  # with the commit subject and short SHA already computed, so run-name below
+  # can put them in the title - something a push-triggered run cannot do.
   pull_request:
   schedule:
     # Nightly full regression on the integration environment. Does not promote.
@@ -109,6 +111,21 @@ on:
         description: 'Promote onward if tests pass (eyter_dev only; fails elsewhere)'
         type: boolean
         default: false
+      # Filled in by push-trigger.yml. Leave all three blank on a manual run -
+      # they exist so a dispatched run can present itself as the push it came
+      # from, in the title and in the stage selection below.
+      origin_event:
+        description: 'internal - leave blank'
+        type: string
+        default: ''
+      short_sha:
+        description: 'internal - leave blank'
+        type: string
+        default: ''
+      commit_subject:
+        description: 'internal - leave blank'
+        type: string
+        default: ''
 
 concurrency:
   # Superseded runs on a branch are cancelled rather than queued behind the one
@@ -158,6 +175,7 @@ jobs:
           INPUT_TEST_SUITE: ${{ inputs.test_suite }}
           INPUT_BROWSER: ${{ inputs.browser }}
           INPUT_PROMOTE: ${{ inputs.promote }}
+          INPUT_ORIGIN_EVENT: ${{ inputs.origin_event }}
           SHA: ${{ github.sha }}
           # Read through the environment rather than interpolated into the script
           # below: a commit message is attacker-controlled text on a public repo,
@@ -166,13 +184,24 @@ jobs:
         run: |
           set -euo pipefail
 
+          # --- what this run really is ---------------------------------------
+          # Every push arrives here as a workflow_dispatch, because
+          # push-trigger.yml dispatched it. origin_event carries the truth, so
+          # everything below reads this rather than github.event_name.
+          EFFECTIVE_EVENT="$EVENT_NAME"
+          if [ "$EVENT_NAME" = workflow_dispatch ] && [ "${INPUT_ORIGIN_EVENT:-}" = push ]; then
+            EFFECTIVE_EVENT=push
+          fi
+
           # --- promotion is bound to eyter_dev -------------------------------
           # The chain is defined as starting at eyter_dev, so promoting from
           # anywhere else would move branches from a commit that never passed
           # the dev gate - a feature branch could push itself straight at
           # release. Checked before anything else is resolved so the run fails
           # in seconds rather than after a full suite.
-          if [ "$EVENT_NAME" = workflow_dispatch ]              && [ "$INPUT_PROMOTE" = true ]              && [ "$REF_NAME" != eyter_dev ]; then
+          # Deliberately not conditioned on the event: a hand-dispatched run
+          # claiming origin_event=push must not slip past this.
+          if [ "${INPUT_PROMOTE:-}" = true ] && [ "$REF_NAME" != eyter_dev ]; then
             echo "::error title=Promotion not allowed from this branch::Promotion is only allowed when triggered from the eyter_dev branch."
             exit 1
           fi
@@ -194,7 +223,7 @@ jobs:
             *)         START_STAGE=dev ;;
           esac
 
-          case "$EVENT_NAME" in
+          case "$EFFECTIVE_EVENT" in
             push)
               # Only eyter_dev is a push trigger, so this always enters at
               # stage 1 and runs the chain end to end. Coverage widens as the
@@ -231,7 +260,7 @@ jobs:
           # What stage 3 runs against production. A manual run verifies with the
           # suite the operator picked; anything automated confirms the deployment
           # with smoke rather than re-testing the build.
-          if [ "$EVENT_NAME" = workflow_dispatch ]; then
+          if [ "$EFFECTIVE_EVENT" = workflow_dispatch ]; then
             PRODUCTION_SUITE="$INPUT_TEST_SUITE"
           else
             PRODUCTION_SUITE=smoke
@@ -287,7 +316,11 @@ jobs:
               echo "Commit: $SHORT_SHA"
             fi
             echo ""
-            echo "Triggered by \`$EVENT_NAME\` on \`$REF_NAME\`, entering at **$START_STAGE**."
+            if [ "$EFFECTIVE_EVENT" = push ] && [ "$EVENT_NAME" = workflow_dispatch ]; then
+              echo "Triggered by a **push** to \`$REF_NAME\` (dispatched by push-trigger.yml), entering at **$START_STAGE**."
+            else
+              echo "Triggered by \`$EVENT_NAME\` on \`$REF_NAME\`, entering at **$START_STAGE**."
+            fi
             echo ""
             echo "The dev -> release -> production chain runs only from \`eyter_dev\`."
             echo "A manual run from \`release\` or \`main\` tests that stage and stops;"

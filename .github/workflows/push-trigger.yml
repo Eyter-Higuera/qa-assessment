@@ -1,0 +1,74 @@
+name: Push trigger
+
+# Exists for one reason: run-name is evaluated when a run is created, before any
+# job exists, and GitHub's expression language cannot shorten a SHA or take the
+# first line of a commit message. So a push cannot title its own run with them.
+#
+# This workflow runs on the push, computes both in a shell, and dispatches the
+# real pipeline with them as inputs - where `QA Automation` CAN put them in its
+# title, because by then they are just strings it was handed.
+#
+# The cost is visible and deliberate: every push produces two rows in the Actions
+# list, this stub and the pipeline it starts.
+
+run-name: "[push] ${{ github.ref_name }} - starting the pipeline"
+
+on:
+  push:
+    branches: [eyter_dev]
+
+permissions:
+  contents: read
+  # Required to dispatch another workflow.
+  actions: write
+
+concurrency:
+  group: push-trigger-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  dispatch:
+    name: Start QA Automation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Derive the short SHA and commit subject
+        id: commit
+        env:
+          SHA: ${{ github.sha }}
+          # Through the environment, never interpolated into the script: on a
+          # public repository a commit message is attacker-controlled text.
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          set -euo pipefail
+          SHORT_SHA=$(echo "$SHA" | cut -c1-7)
+          # head -1 is the whole point - the body must not reach the title.
+          SUBJECT=$(printf '%s' "${COMMIT_MESSAGE:-}" | head -1)
+          [ -n "$SUBJECT" ] || SUBJECT="(no commit message)"
+          {
+            echo "short_sha=$SHORT_SHA"
+            echo "subject=$SUBJECT"
+          } >> "$GITHUB_OUTPUT"
+          echo "Starting the pipeline for \"$SUBJECT\" ($SHORT_SHA)."
+
+      - name: Dispatch the pipeline
+        env:
+          # workflow_dispatch and repository_dispatch are the two events the
+          # default GITHUB_TOKEN is still allowed to trigger; every other event
+          # it raises is ignored to prevent recursion. A PAT is accepted too,
+          # for repositories where the default token is restricted further.
+          GH_TOKEN: ${{ secrets.PROMOTION_TOKEN || secrets.GITHUB_TOKEN }}
+          SHORT_SHA: ${{ steps.commit.outputs.short_sha }}
+          SUBJECT: ${{ steps.commit.outputs.subject }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          gh workflow run "QA Automation" \
+            --repo "$REPO" \
+            --ref "$BRANCH" \
+            -f origin_event=push \
+            -f test_suite=regression \
+            -f browser=chromium \
+            -f promote=true \
+            -f short_sha="$SHORT_SHA" \
+            -f commit_subject="$SUBJECT"
