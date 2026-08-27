@@ -1,6 +1,20 @@
 import { Locator, Page, expect } from '@playwright/test';
 
 /**
+ * How long to wait on an assertion that gates on demoqa's login round-trip.
+ *
+ * The global expect timeout is 10s, which is right for a DOM assertion. Logging
+ * in is not one: /Account/v1/Login is a third-party endpoint that has been
+ * measured at 25-30s under the load four parallel browser projects put on it,
+ * and until it answers, the page sits on /login with no error and no redirect.
+ * At 10s the CI suite failed all three attempts while the site was merely slow.
+ *
+ * This is a tolerance, not a fix - the latency itself is a finding about the
+ * application, not about the test.
+ */
+export const LOGIN_RESPONSE_TIMEOUT = 30_000;
+
+/**
  * Shared behaviour for every page object.
  *
  * demoqa.com serves third-party ad frames that float over the page and steal

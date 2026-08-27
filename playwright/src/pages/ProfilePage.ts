@@ -1,5 +1,5 @@
 import { Page, expect } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { BasePage, LOGIN_RESPONSE_TIMEOUT } from './BasePage';
 
 export class ProfilePage extends BasePage {
   readonly path = '/profile';
@@ -30,7 +30,7 @@ export class ProfilePage extends BasePage {
    * (BUG-005), so asserting on the URL alone produces false failures.
    */
   async expectLoadedFor(userName: string): Promise<void> {
-    await expect(this.page).toHaveURL(/\/profile/);
+    await expect(this.page).toHaveURL(/\/profile/, { timeout: LOGIN_RESPONSE_TIMEOUT });
     await expect(this.userNameValue).toHaveText(userName);
   }
 

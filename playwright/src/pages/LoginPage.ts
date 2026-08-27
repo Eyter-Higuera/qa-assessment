@@ -1,5 +1,5 @@
 import { Page, expect } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { BasePage, LOGIN_RESPONSE_TIMEOUT } from './BasePage';
 
 export class LoginPage extends BasePage {
   readonly path = '/login';
@@ -26,6 +26,6 @@ export class LoginPage extends BasePage {
   }
 
   async expectError(text: string | RegExp): Promise<void> {
-    await expect(this.errorMessage).toHaveText(text);
+    await expect(this.errorMessage).toHaveText(text, { timeout: LOGIN_RESPONSE_TIMEOUT });
   }
 }
