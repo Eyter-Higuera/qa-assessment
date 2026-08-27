@@ -53,11 +53,16 @@ jobs:
 
   ui:
     name: Web (Playwright) - ${{ inputs.environment }} - ${{ inputs.suite }} - ${{ matrix.browser }}
-    # Deliberately NOT `needs: api`. Gating the browsers on the API suite saved
-    # runner minutes when the contract was broken, but it cost the whole API
-    # duration in wall-clock on every green run - 66s of a 174s stage. Running
-    # both from the start halves the stage; the price is that a broken API now
-    # burns the browser minutes too.
+    # The browsers wait for the API contract. Both suites drive the same back
+    # end, so an API failure means the browser legs would be testing a service
+    # already known to be broken - and with `all browsers` that is four runners
+    # spent to learn nothing. A failed api skips every leg here by the default
+    # needs-semantics; no condition is needed to express that.
+    #
+    # The cost is wall-clock: the stage becomes api + ui rather than the longer
+    # of the two, which measured at 66s + 108s against 108s before the browser
+    # install was trimmed. Minutes over latency, deliberately.
+    needs: api
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
