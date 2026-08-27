@@ -27,84 +27,271 @@ Karate      23 scenarios passed, 0 failed
 Building them surfaced **11 defects and observations** in the application under test,
 documented with reproduction steps in Appendix B of the assessment document.
 
-## Running the tests
+## Testing manual
 
-> **On Windows PowerShell**, run the lines in each block one at a time. Windows
-> PowerShell 5.1 has no `&&` operator, so joining them into a single line fails with
-> *"El token '&&' no es un separador de instrucciones válido"* / *"'&&' is not a valid
-> statement separator"*. Use `;` to chain, or `; if ($?) { ... }` to stop on the first
-> failure. Git Bash and PowerShell 7+ accept `&&` as written.
+<!-- testing-manual:start -->
 
-### Web (Playwright)
+### 1. Testing architecture
+
+Three layers, run in a strict sequence. Each is cheaper and more certain than the
+one after it, so the pipeline learns the cheapest thing first and stops as soon as
+it knows enough.
+
+| Layer | Tool | Scope | Needs a target URL? | Fails the stage below it |
+|---|---|---|---|---|
+| **Unit** | Vitest | Pure logic in `playwright/src` — no browser, no network | No | Skips API **and** UI |
+| **API** | Karate (Java 17 + Maven) | Book Store REST contract, per scenario | Yes | Skips UI |
+| **UI** | Playwright | Browser journeys, one leg per browser | Yes | — |
+
+```
+0. unit (Vitest)  →  api (Karate)  →  ui (Playwright, one leg per browser)
+```
+
+**Why unit tests run once, not per environment.** Unit tests assert pure logic —
+they never open a browser, never make a request, never touch demoqa.com. Their
+answer therefore *cannot* differ between dev, release and production. Running them
+inside each stage bought three identical answers to the same question, and made the
+API suite wait behind a redundant `npm ci` every time. They now run once, straight
+after the run configuration is resolved, as job `0. Unit tests (Vitest)`.
+
+Because they run once, they have to gate *every* way into the chain. `dev` inherits
+that through ordinary job dependencies, but `release` and `production` are entry
+points in their own right and their conditions use a status function, which opts out
+of the implicit "all dependencies succeeded" rule. Both therefore name the result
+explicitly — without that, starting a run from `release` would walk straight past
+the gate.
+
+### 2. Local execution
+
+Three parameters run through everything: **environment** (which host), **suite**
+(smoke or regression) and **browser**.
+
+> **Windows PowerShell.** Run the lines in each block one at a time. PowerShell 5.1
+> has no `&&`, so joining them fails with *"'&&' is not a valid statement
+> separator"*. Use `;` to chain, or `; if ($?) { … }` to stop on the first failure.
+> Git Bash and PowerShell 7+ accept `&&` as written. PowerShell also has no inline
+> `VAR=value command` prefix — use `$env:VAR='…'` on its own statement.
+
+#### Unit tests and coverage (Vitest)
 
 ```bash
 cd playwright
 npm ci
-npm run test:unit           # unit tests only - no browser needed
-npm run test:unit:coverage  # the same, with the coverage gate
-npx playwright install chromium
-npm test                    # full suite, chromium
-npm run test:smoke          # @smoke only
-npm run test:headed         # watch it run
-npm run report              # open the HTML report
+npm run test:unit                 # tests only
+npm run test:unit -- --coverage   # tests + coverage gate
+npm run test:unit:watch           # re-run on save while developing
 ```
 
-Override the target environment with an environment variable:
+Coverage is scoped to the code unit tests are responsible for. `src/pages/**` and
+`src/utils/api-client.ts` are excluded by rule, because the Playwright suite and the
+live API are what exercise them — counting them here would measure the absence of
+Playwright rather than the quality of these tests.
 
-```bash
-BASE_URL=https://staging.example.com npm test        # bash
-```
+| Metric | Covered | Total | % | Floor |
+|---|--:|--:|--:|--:|
+| Statements | 2 | 2 | 100% | 80% |
+| Branches | 1 | 1 | 100% | 80% |
+| Functions | 1 | 1 | 100% | 80% |
+| Lines | 2 | 2 | 100% | 80% |
 
-```powershell
-$env:BASE_URL='https://staging.example.com'; npm test  # PowerShell
-```
+Vitest fails the run itself when any metric drops below the floor, so the gate is
+the runner's and not a later script's reading of a report. Read the figure as *"the
+pure logic is covered"*, not *"the project is covered"* — the covered surface is
+deliberately small.
 
-The `VAR=value command` prefix is bash-only — PowerShell has no inline env-var syntax.
+![Unit test coverage in the terminal](docs/images/local-unit-coverage.png)
 
-#### Cross-browser runs
+#### API tests (Karate)
 
-Chromium is the gate and the only browser the setup above installs, so every
-`npm` script pins `--project=chromium`. Firefox, WebKit and Microsoft Edge are
-opt-in and need their browsers installed first:
-
-```bash
-npx playwright install firefox webkit msedge
-npm run test:cross-browser
-npx playwright test --project=msedge
-```
-
-Edge is a branded channel rather than a bundled engine, so `npx playwright install`
-on its own does not fetch it — it has to be named. `playwright test` has no
-`--channel` flag either, so the config models Edge as a project that pins
-`channel: 'msedge'`; one `--project` argument then selects any of the four.
-
-All four browsers pass. They stay out of the PR gate to keep it fast, not because
-they are broken — but they run against a public demo site, so treat a failure there
-as "check the environment" before "check the product".
-
-### API (Karate)
-
-Requires **Java 17** and Maven 3.8+. Karate's GraalJS engine does not support JDK 18+ —
-on a newer JDK the suite hangs silently instead of failing, so check `java -version`
-first. Java 17 is what CI pins.
+Requires **Java 17** and Maven 3.8+. Karate's GraalJS engine does not support
+JDK 18+ — on a newer JDK the suite hangs silently instead of failing, so check
+`java -version` first.
 
 ```bash
 cd karate
-mvn test -Dtest=BookStoreApiTest    # full suite
-mvn test -Dtest=SmokeTest           # @smoke only
-mvn test -Dkarate.env=staging       # point at another environment
-mvn test -Dkarate.env=production -DbaseUrl=https://demoqa.com   # host override
 ```
 
-On Windows PowerShell, quote any `-D` containing a dot — PowerShell ends a parameter
-name at the first `.`, so `-Dkarate.env=staging` arrives at Maven split in two and
-fails with *"Unknown lifecycle phase '.env=staging'"*:
+Quote any `-D` containing a dot on PowerShell: it ends a parameter name at the first
+`.`, so `-Dkarate.env=dev` arrives at Maven split in two and fails with *"Unknown
+lifecycle phase '.env=dev'"*.
+
+**Dev** — smoke:
+
+```bash
+mvn test -Dtest=SmokeTest -Dkarate.env=dev
+```
+```powershell
+mvn test '-Dtest=SmokeTest' '-Dkarate.env=dev'
+```
+
+![Karate smoke against dev](docs/images/local-karate-dev.png)
+
+**Release** — full regression:
+
+```bash
+mvn test -Dtest=BookStoreApiTest -Dkarate.env=release
+```
+```powershell
+mvn test '-Dtest=BookStoreApiTest' '-Dkarate.env=release'
+```
+
+![Karate regression against release](docs/images/local-karate-release.png)
+
+**Production** — smoke, with an explicit host:
+
+```bash
+mvn test -Dtest=SmokeTest -Dkarate.env=production -DbaseUrl=https://demoqa.com
+```
+```powershell
+mvn test '-Dtest=SmokeTest' '-Dkarate.env=production' '-DbaseUrl=https://demoqa.com'
+```
+
+![Karate smoke against production](docs/images/local-karate-production.png)
+
+`-Dtest` picks the runner class and therefore the tag set: `SmokeTest` runs `@smoke`,
+`BookStoreApiTest` runs everything. Reports land in
+`karate/target/karate-reports/karate-summary.html`.
+
+#### UI tests (Playwright)
+
+```bash
+cd playwright
+npx playwright install chromium              # or: firefox webkit msedge
+```
+
+**Dev** — smoke on chromium:
+
+```bash
+BASE_URL=https://demoqa.com npx playwright test --project=chromium --grep @smoke
+```
+```powershell
+$env:BASE_URL='https://demoqa.com'; npx playwright test --project=chromium --grep @smoke
+```
+
+![Playwright smoke against dev](docs/images/local-playwright-dev.png)
+
+**Release** — regression across every browser:
+
+```bash
+BASE_URL=https://demoqa.com npx playwright test --project=chromium --project=firefox --project=webkit --project=msedge
+```
+```powershell
+$env:BASE_URL='https://demoqa.com'; npx playwright test --project=chromium --project=firefox --project=webkit --project=msedge
+```
+
+![Playwright regression across browsers](docs/images/local-playwright-release.png)
+
+**Production** — smoke on Edge:
+
+```bash
+BASE_URL=https://demoqa.com npx playwright test --project=msedge --grep @smoke
+```
+```powershell
+$env:BASE_URL='https://demoqa.com'; npx playwright test --project=msedge --grep @smoke
+```
+
+![Playwright smoke against production](docs/images/local-playwright-production.png)
+
+**UI mode** — pick and re-run tests interactively:
+
+```bash
+npx playwright test --ui
+npm run test:headed     # or just watch chromium drive
+npm run report          # open the last HTML report
+```
+
+Edge is a branded channel rather than a bundled engine, so `npx playwright install`
+alone does not fetch it — it has to be named. `playwright test` has no `--channel`
+flag either, so the config models Edge as a project pinning `channel: 'msedge'`; one
+`--project` argument then selects any of the four.
+
+#### The whole sequence in one line
+
+Unit → API → UI, stopping at the first failure:
+
+```bash
+cd playwright && npm run test:unit -- --coverage && cd ../karate && mvn test -Dtest=SmokeTest -Dkarate.env=dev && cd ../playwright && BASE_URL=https://demoqa.com npx playwright test --project=chromium --grep @smoke
+```
 
 ```powershell
-mvn test '-Dkarate.env=staging'
+cd playwright; if ($?) { npm run test:unit -- --coverage }; if ($?) { cd ../karate }; if ($?) { mvn test '-Dtest=SmokeTest' '-Dkarate.env=dev' }; if ($?) { cd ../playwright }; if ($?) { $env:BASE_URL='https://demoqa.com'; npx playwright test --project=chromium --grep @smoke }
 ```
 
-Reports land in `karate/target/karate-reports/karate-summary.html`.
+### 3. GitHub Actions pipeline
+
+Run it from **Actions → QA Automation → Run workflow**. Four things decide what
+happens, and the first of them is the branch:
+
+| Input | Options | Effect |
+|---|---|---|
+| **Use workflow from** | `eyter_dev`, `release`, `main` | Chooses the entry stage — this is why there is no environment dropdown |
+| **Test suite** | `smoke`, `regression` | `-Dtest=SmokeTest`/`BookStoreApiTest`, and `--grep @smoke` |
+| **Playwright browser** | `chromium`, `firefox`, `webkit`, `msedge`, `all browsers` | One matrix leg each; `all browsers` runs four in parallel |
+| **Promote** | checkbox, off by default | Whether the run continues past its entry stage |
+
+#### Scenario A — running from `eyter_dev`
+
+The full chain. Unit tests gate everything; the dev stage runs against the dev host;
+if it is green and *Promote* is ticked, the tested commit is fast-forwarded onto
+`release`, the release stage runs, and the same happens onto `main` before
+production is deployed and verified.
+
+```
+0. unit → 1. dev → promote → 2. release → promote → 3. deploy → verify
+```
+
+With *Promote* unticked the run stops after the dev stage: nothing is promoted, no
+branch moves, nothing is deployed.
+
+![Scenario A — full chain from eyter_dev](docs/images/ci-scenario-a-eyter-dev.png)
+
+#### Scenario B — running from `release` or `main`
+
+The branch is the entry point, so earlier stages are skipped and the run starts
+where you pointed it. **Promotion is bound to `eyter_dev`**: ticking *Promote* on a
+run started from `release`, `main` or a feature branch fails the run in seconds,
+before any suite starts, with
+
+> Promotion is only allowed when triggered from the eyter_dev branch.
+
+That guard matters most in the case that looks harmless — a feature branch enters at
+the dev stage exactly like `eyter_dev` does, so without it a green feature-branch run
+would push its own commit straight at `release`.
+
+Two things to know before running from `main`: entering at stage 3 **deploys**,
+promote or not, because `main` has nowhere further to promote to; and a `Pipeline
+result` job fails the run if production was deployed but its verification did not
+pass, so a deploy can never report green unverified.
+
+![Scenario B — single stage from release or main](docs/images/ci-scenario-b-release-main.png)
+
+#### What the run summary shows
+
+Every job writes its results to the run summary page, so a failure is readable
+without downloading an artifact: the Vitest coverage table with a tick or cross per
+metric, then a Karate table and a Playwright table per stage — totals, a row per
+suite with pass/fail/skip counts and durations, and, when something fails, a second
+table naming each failing test with the first line of its error.
+
+![The GitHub job summary](docs/images/ci-job-summary.png)
+
+<!-- testing-manual:end -->
+
+### Regenerating the PDF
+
+[`testing_manual_report.pdf`](testing_manual_report.pdf) is this manual, styled, with
+the three suites executed and their real output appended:
+
+```bash
+python scripts/build_testing_report.py             # run the suites, then render
+python scripts/build_testing_report.py --no-run    # render the manual alone
+```
+
+The manual is not duplicated in the script — it is read from this README between the
+`testing-manual` markers, so the PDF cannot drift from what you are reading now.
+Rendering prefers WeasyPrint and falls back to the Chromium that Playwright already
+installs, because WeasyPrint needs GTK natively and will not install on a stock
+Windows machine without an elevated system install.
 
 ## CI/CD
 
@@ -282,6 +469,9 @@ Senior_QA_Engineer_Assessment.md   the written submission
 docs/assessment.html               the same document, formatted for reading and print
 playwright/                        web automation — page objects, fixtures, specs
 karate/                            API automation — feature files and JUnit runners
+testing_manual_report.pdf          the testing manual as a styled PDF, with real captured output
+scripts/build_testing_report.py    regenerates that PDF from the manual below
+docs/images/                       screenshots the manual references
 .github/workflows/ci.yml           eyter_dev → release → main promotion chain; see CI/CD above
 .github/workflows/test-stage.yml   reusable Karate + Playwright stage, called once per environment
 ```

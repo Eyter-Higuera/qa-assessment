@@ -1,0 +1,10 @@
+import { chromium } from 'playwright';
+import { pathToFileURL } from 'node:url';
+import { resolve } from 'node:path';
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 900, height: 1200 } });
+await p.goto(pathToFileURL(resolve(process.argv[2])).href, { waitUntil: 'networkidle' });
+await p.screenshot({ path: resolve(process.argv[3]) });
+await p.evaluate(() => [...document.querySelectorAll('h3')].find(h => h.textContent.includes('Unit tests and coverage'))?.scrollIntoView());
+await p.screenshot({ path: resolve(process.argv[4]) });
+await b.close();

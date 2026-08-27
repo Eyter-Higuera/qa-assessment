@@ -4,6 +4,7 @@ playwright/test-results/
 playwright/playwright-report/
 playwright/blob-report/
 playwright/coverage/
+.testing-report.html
 playwright/.env
 
 # Java / Karate
