@@ -143,6 +143,7 @@ jobs:
       release_browsers: ${{ steps.resolve.outputs.release_browsers }}
       run_chain: ${{ steps.resolve.outputs.run_chain }}
       production_suite: ${{ steps.resolve.outputs.production_suite }}
+      short_sha: ${{ steps.resolve.outputs.short_sha }}
     steps:
       - name: Resolve entry point, suites, browsers and promotion
         id: resolve
@@ -236,6 +237,12 @@ jobs:
             PRODUCTION_SUITE=smoke
           fi
 
+          # run-name cannot derive either of these - no split, no substring - so
+          # they are cut here, where a shell can do it, and handed to the jobs
+          # below through outputs.
+          SHORT_SHA=$(echo "$SHA" | cut -c1-7)
+          COMMIT_SUBJECT=$(printf '%s' "${COMMIT_MESSAGE:-}" | head -1)
+
           {
             echo "start_stage=$START_STAGE"
             echo "dev_base_url=$DEV_BASE_URL"
@@ -247,6 +254,7 @@ jobs:
             echo "release_browsers=$(json_browsers "$RELEASE_BROWSER")"
             echo "run_chain=$RUN_CHAIN"
             echo "production_suite=$PRODUCTION_SUITE"
+            echo "short_sha=$SHORT_SHA"
           } >> "$GITHUB_OUTPUT"
 
           # --- render what this run will actually do -------------------------
@@ -266,11 +274,6 @@ jobs:
               echo "| $2 | skipped - promotion is off |"
             fi
           }
-
-          # run-name cannot do either of these - no split, no substring - so the
-          # commit subject and the short SHA are derived here instead.
-          SHORT_SHA=$(printf '%s' "$SHA" | cut -c1-7)
-          COMMIT_SUBJECT=$(printf '%s' "${COMMIT_MESSAGE:-}" | head -1)
 
           {
             echo "### Run configuration"
@@ -316,7 +319,7 @@ jobs:
       browsers: ${{ needs.config.outputs.browsers }}
 
   promote-to-release:
-    name: 1b. Promote to release
+    name: 1b. Promote ${{ needs.config.outputs.short_sha }} to release
     needs: [config, dev-tests]
     # No status function here on purpose: the default needs-semantics already
     # require dev-tests to have succeeded.
@@ -368,7 +371,7 @@ jobs:
       browsers: ${{ needs.config.outputs.release_browsers }}
 
   promote-to-main:
-    name: 2b. Promote to main
+    name: 2b. Promote ${{ needs.config.outputs.short_sha }} to main
     needs: [config, release-tests]
     # release-tests is reached by two different paths, so its result is checked
     # explicitly rather than left to the default needs-semantics.
@@ -403,7 +406,7 @@ jobs:
   # promotion between branches, and main has nowhere further to promote to.
   # ---------------------------------------------------------------------------
   deploy-production:
-    name: 3. Deploy to production
+    name: 3. Deploy ${{ needs.config.outputs.short_sha }} to production
     needs: [config, promote-to-main]
     if: >-
       !cancelled() &&
