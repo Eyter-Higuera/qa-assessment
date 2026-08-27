@@ -53,9 +53,11 @@ jobs:
 
   ui:
     name: Web (Playwright) - ${{ inputs.environment }} - ${{ inputs.suite }} - ${{ matrix.browser }}
-    # The web suite exercises the same back end; no point burning runner minutes
-    # on browsers if the API contract is already broken.
-    needs: api
+    # Deliberately NOT `needs: api`. Gating the browsers on the API suite saved
+    # runner minutes when the contract was broken, but it cost the whole API
+    # duration in wall-clock on every green run - 66s of a 174s stage. Running
+    # both from the start halves the stage; the price is that a broken API now
+    # burns the browser minutes too.
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -71,16 +73,34 @@ jobs:
       - name: Install dependencies
         working-directory: playwright
         run: npm ci
-      - name: Install browsers
+      # The bare `playwright install` fetched Chromium, Firefox AND WebKit on
+      # every leg - 66 seconds to download two engines the leg never launches.
+      # Each leg now installs only its own browser, and keeps it between runs.
+      - name: Restore the browser binary
+        id: browser-cache
+        if: matrix.browser != 'msedge'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          # Keyed on the lockfile, so a Playwright version bump misses the cache
+          # rather than launching last version's binary.
+          key: playwright-${{ runner.os }}-${{ matrix.browser }}-${{ hashFiles('playwright/package-lock.json') }}
+      - name: Install ${{ matrix.browser }}
+        if: matrix.browser != 'msedge' && steps.browser-cache.outputs.cache-hit != 'true'
         working-directory: playwright
-        # Installs the bundled Chromium, Firefox and WebKit builds together with
-        # the OS-level libraries the runner needs to launch them headless.
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Install system libraries for the cached ${{ matrix.browser }}
+        if: matrix.browser != 'msedge' && steps.browser-cache.outputs.cache-hit == 'true'
+        working-directory: playwright
+        # The binary came from the cache; the apt packages it links against did
+        # not, and they live outside the cached directory.
+        run: npx playwright install-deps ${{ matrix.browser }}
       - name: Install Microsoft Edge
         if: matrix.browser == 'msedge'
         working-directory: playwright
-        # Edge is a branded channel rather than a bundled engine, so the command
-        # above does not fetch it - it has to be requested by name.
+        # Edge is a branded channel, not a bundled engine: it installs as a
+        # system package outside ~/.cache/ms-playwright, so there is nothing for
+        # the cache above to hold and it is fetched every run.
         run: npx playwright install --with-deps msedge
       - name: Run Playwright ${{ inputs.suite }} suite
         working-directory: playwright
