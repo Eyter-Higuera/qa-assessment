@@ -12,7 +12,11 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
   outputDir: './test-results',
-  timeout: 60_000,
+  // The @e2e journey registers, logs in, searches, adds, opens, deletes and logs
+  // out. Any one of those can be slow, and LOGIN_RESPONSE_TIMEOUT alone allows
+  // 30s for the login round-trip - half of a 60s budget before the journey has
+  // started. The container has to be bigger than the parts it now tolerates.
+  timeout: 120_000,
   expect: { timeout: 10_000 },
 
   fullyParallel: true,

@@ -133,10 +133,10 @@ mvn test '-Dtest=SmokeTest' '-Dkarate.env=dev'
 **Release** — full regression:
 
 ```bash
-mvn test -Dtest=BookStoreApiTest -Dkarate.env=release
+mvn test -Dtest=BookStoreApiTest -Dkarate.env=release -DbaseUrl=https://demoqa.com
 ```
 ```powershell
-mvn test '-Dtest=BookStoreApiTest' '-Dkarate.env=release'
+mvn test '-Dtest=BookStoreApiTest' '-Dkarate.env=release' '-DbaseUrl=https://demoqa.com'
 ```
 
 <p align="center">
@@ -157,7 +157,12 @@ mvn test '-Dtest=SmokeTest' '-Dkarate.env=production' '-DbaseUrl=https://demoqa.
 </p>
 
 `-Dtest` picks the runner class and therefore the tag set: `SmokeTest` runs `@smoke`,
-`BookStoreApiTest` runs everything. Reports land in
+`BookStoreApiTest` runs everything.
+
+`release` and `production` both need `-DbaseUrl` locally. `dev` defaults to the demo
+site, but `release` falls back to a placeholder host that does not resolve, so the
+command would fail with a connection error rather than a test failure. In CI the
+host comes from the `RELEASE_BASE_URL` repository variable instead. Reports land in
 `karate/target/karate-reports/karate-summary.html`.
 
 #### UI tests (Playwright)

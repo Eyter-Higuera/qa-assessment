@@ -1,13 +1,23 @@
 # Screenshots for the testing manual
 
 The manual in [`../../README.md`](../../README.md) references the images below.
-Every one of them exists as a **generated placeholder** — a labelled card naming
-the capture and the command that produces it — so nothing renders broken before
-the real screenshots are taken. Replacing one is just dropping the real capture
-over it under the same filename; both the README and
-`testing_manual_report.pdf` pick it up with no further changes.
+**The seven `local-*.png` files are real captures.** Each is the actual terminal
+output of the command it sits under, produced by running it:
 
-Regenerate the placeholders with:
+```bash
+python ../../scripts/capture_terminal_screenshots.py                 # all seven
+python ../../scripts/capture_terminal_screenshots.py unit karate-dev # just these
+```
+
+That script executes the command, converts its ANSI colour to HTML, renders a
+terminal window and screenshots it at 2x. It captures whatever happened — a
+failing command produces a screenshot of it failing, which is the point: the
+manual then shows the truth and someone fixes the command.
+
+**The three `ci-*.png` files are still placeholders**, and have to be captured by
+hand: they are screenshots of GitHub's own UI from a signed-in browser. Drawing
+something that resembled them would be a fabrication rather than a capture.
+Generate or regenerate placeholders with:
 
 ```bash
 python ../../scripts/make_placeholder_images.py           # only what is missing
