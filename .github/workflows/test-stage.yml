@@ -41,9 +41,12 @@ jobs:
       - name: Install dependencies
         working-directory: playwright
         run: npm ci
-      - name: Run unit tests
+      - name: Run unit tests with coverage
         working-directory: playwright
-        run: npm run test:unit
+        # Vitest fails this step itself when coverage drops under the configured
+        # floor, so the gate is the runner's, not a later step's interpretation
+        # of a report.
+        run: npm run test:unit:coverage
       - name: Publish unit results to the run summary
         if: always()
         run: >-
@@ -51,11 +54,19 @@ jobs:
           "Unit (Vitest) - ${{ inputs.environment }}"
           'playwright/test-results/unit-junit.xml'
           >> "$GITHUB_STEP_SUMMARY"
+      - name: Publish coverage to the run summary
+        if: always()
+        run: >-
+          python3 .github/scripts/coverage-summary.py
+          playwright/coverage/coverage-summary.json 80
+          >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: unit-results-${{ inputs.environment }}
-          path: playwright/test-results/unit-junit.xml
+          path: |
+            playwright/test-results/unit-junit.xml
+            playwright/coverage/
           retention-days: 14
 
   api:

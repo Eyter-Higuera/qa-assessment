@@ -3,6 +3,7 @@ node_modules/
 playwright/test-results/
 playwright/playwright-report/
 playwright/blob-report/
+playwright/coverage/
 playwright/.env
 
 # Java / Karate

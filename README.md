@@ -41,6 +41,7 @@ documented with reproduction steps in Appendix B of the assessment document.
 cd playwright
 npm ci
 npm run test:unit           # unit tests only - no browser needed
+npm run test:unit:coverage  # the same, with the coverage gate
 npx playwright install chromium
 npm test                    # full suite, chromium
 npm run test:smoke          # @smoke only
@@ -123,7 +124,16 @@ unit (Vitest) → api (Karate) → ui (Playwright, one leg per browser)
 ```
 
 Unit tests touch no browser, no network and no demoqa.com, so a failure there is
-unambiguously our code and lands in seconds. A failed unit job skips the API suite;
+unambiguously our code and lands in seconds. That job also carries a **coverage
+gate**: Vitest fails it if statements, branches, functions or lines drop under 80%,
+and the run summary shows the four figures with a per-file breakdown.
+
+Coverage is scoped to the code unit tests are responsible for — `src/pages/**` and
+`src/utils/api-client.ts` are excluded because the Playwright suite is what
+exercises them, and counting them here would measure the absence of Playwright
+rather than the quality of these tests. Read the percentage as *"the pure logic is
+covered"*, not *"the project is 100% covered"* — most of `src/` is browser-driven
+by design. A failed unit job skips the API suite;
 a failed API suite skips every browser leg — with `all browsers` selected that is
 four runners not spent learning what the first job already knew.
 
