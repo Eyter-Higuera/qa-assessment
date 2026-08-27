@@ -16,8 +16,19 @@ name: QA Automation
 # and printed at the top of the run summary, which is the nearest place they
 # can actually exist. The Actions list also shows the commit separately.
 #
-# The fallback arm uses the run number: when a push carries no head_commit
-# message there is nothing short left to identify it with.
+# A step cannot help either. run-name is evaluated once, when the run is created
+# and before any job exists, and there is no API to rename a run afterwards - so
+# nothing a script computes can ever reach the title. The only mechanism that
+# would is a trampoline: a stub workflow on push that dispatches the real one
+# with the short SHA as an input. That is not worth it here. It doubles every
+# push into two runs, and it makes every real run a workflow_dispatch, which is
+# exactly the distinction the resolver below and the eyter_dev promotion guard
+# depend on.
+#
+# So push titles carry the run number: short by construction, unique, and the
+# thing the Actions UI links by. The commit is not lost - the list shows its SHA
+# in its own column, and the run summary prints the subject and short SHA
+# together, both derived in bash where deriving them is possible.
 #
 # `a && b || c` is GitHub's ternary: && yields its right side when the left is
 # truthy, || yields the first truthy operand. Every format() here returns a
@@ -36,11 +47,7 @@ run-name: >-
             || format('[MANUAL: {0}] - [API + UI] - {1} on {2}',
                       github.ref_name, inputs.test_suite, inputs.browser) )
    || github.event_name == 'push'
-        && ( github.event.head_commit.message
-               && format('[PUSH: {0}] - [API + UI] - "{1}"',
-                         github.ref_name, github.event.head_commit.message)
-            || format('[PUSH: {0}] - [API + UI] - run #{1}',
-                      github.ref_name, github.run_number) )
+        && format('[PUSH: {0}] - [API + UI] - (run #{1})', github.ref_name, github.run_number)
    || github.event_name == 'pull_request'
         && format('[PR #{0}] - [API + UI] - {1}', github.event.pull_request.number, github.event.pull_request.title)
    || format('[{0}: {1}] - [API + UI] - nightly full regression', github.event_name, github.ref_name) }}
