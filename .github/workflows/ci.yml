@@ -14,11 +14,19 @@ name: QA Automation
 # `a && b || c` is GitHub's ternary: && yields its right side when the left is
 # truthy, || yields the first truthy operand. Every format() here returns a
 # non-empty string, so each branch is truthy and the chain falls through
-# correctly to the last arm.
+# correctly to the last arm, nested ternary included.
+#
+# `inputs.promote == true` compares against a real boolean, which works because
+# the inputs context honours the declared type. github.event.inputs.promote is
+# the trap: that one is always a string, and 'false' is truthy, so a title built
+# from it would claim every manual run promotes.
 run-name: >-
   ${{ github.event_name == 'workflow_dispatch'
-        && format('[MANUAL: {0}] - {1} on {2}',
-                  github.ref_name, inputs.test_suite, inputs.browser)
+        && ( inputs.promote == true
+               && format('[MANUAL: {0}] - Promote onward from this branch if its tests pass - {1} on {2}',
+                         github.ref_name, inputs.test_suite, inputs.browser)
+            || format('[MANUAL: {0}] - {1} on {2}',
+                      github.ref_name, inputs.test_suite, inputs.browser) )
    || github.event_name == 'push'
         && format('[PUSH: {0}] - {1}', github.ref_name, github.sha)
    || github.event_name == 'pull_request'
