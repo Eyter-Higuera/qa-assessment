@@ -97,6 +97,11 @@ Three parameters run through everything: **environment** (which host), **suite**
 > separator"*. Use `;` to chain, or `; if ($?) { … }` to stop on the first failure.
 > Git Bash and PowerShell 7+ accept `&&` as written. PowerShell also has no inline
 > `VAR=value command` prefix — use `$env:VAR='…'` on its own statement.
+>
+> **Quote Playwright's tags on PowerShell too.** `@` is the splatting operator, so a
+> bare `--grep @smoke` expands the undefined variable `$smoke` to nothing and the
+> argument silently disappears — Playwright then reports
+> *"option '-g, --grep <grep>' argument missing"*. Write `--grep '@smoke'`.
 
 #### Unit tests and coverage (Vitest)
 
@@ -204,7 +209,7 @@ npx playwright install chromium              # or: firefox webkit msedge
 BASE_URL=https://demoqa.com npx playwright test --project=chromium --grep @smoke
 ```
 ```powershell
-$env:BASE_URL='https://demoqa.com'; npx playwright test --project=chromium --grep @smoke
+$env:BASE_URL='https://demoqa.com'; npx playwright test --project=chromium --grep '@smoke'
 ```
 
 <p align="center">
@@ -230,7 +235,7 @@ $env:BASE_URL='https://demoqa.com'; npx playwright test --project=chromium --pro
 BASE_URL=https://demoqa.com npx playwright test --project=msedge --grep @smoke
 ```
 ```powershell
-$env:BASE_URL='https://demoqa.com'; npx playwright test --project=msedge --grep @smoke
+$env:BASE_URL='https://demoqa.com'; npx playwright test --project=msedge --grep '@smoke'
 ```
 
 <p align="center">
@@ -259,7 +264,7 @@ cd playwright && npm run test:unit -- --coverage && cd ../karate && mvn test -Dt
 ```
 
 ```powershell
-cd playwright; if ($?) { npm run test:unit -- --coverage }; if ($?) { cd ../karate }; if ($?) { mvn test '-Dtest=SmokeTest' '-Dkarate.env=dev' }; if ($?) { cd ../playwright }; if ($?) { $env:BASE_URL='https://demoqa.com'; npx playwright test --project=chromium --grep @smoke }
+cd playwright; if ($?) { npm run test:unit -- --coverage }; if ($?) { cd ../karate }; if ($?) { mvn test '-Dtest=SmokeTest' '-Dkarate.env=dev' }; if ($?) { cd ../playwright }; if ($?) { $env:BASE_URL='https://demoqa.com'; npx playwright test --project=chromium --grep '@smoke' }
 ```
 
 ### 3. GitHub Actions pipeline
