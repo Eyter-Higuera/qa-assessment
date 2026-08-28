@@ -1,0 +1,87 @@
+{
+  "headline_scope": [
+    "unit",
+    "api-smoke",
+    "ui-smoke"
+  ],
+  "headline": {
+    "total": 14,
+    "passed": 14,
+    "failed": 0,
+    "pass_rate": 100.0
+  },
+  "coverage": {
+    "statements": 100,
+    "branches": 100,
+    "functions": 100,
+    "lines": 100
+  },
+  "commit": "523ad20",
+  "suites": {
+    "unit": {
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "total": 7,
+      "seconds": 0.0,
+      "label": "Unit",
+      "tool": "Vitest",
+      "scope": "Pure logic in src/ - 100% of the covered surface",
+      "exit_code": 0,
+      "command": "npm run test:unit -- --coverage",
+      "wall_seconds": 3.0
+    },
+    "api-smoke": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "total": 2,
+      "seconds": 12.5,
+      "label": "API (smoke)",
+      "tool": "Karate",
+      "scope": "@smoke scenarios - the deployment gate",
+      "exit_code": 0,
+      "command": "mvn -B test -Dtest=SmokeTest -Dkarate.env=dev",
+      "wall_seconds": 24.1
+    },
+    "ui-smoke": {
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "total": 5,
+      "seconds": 35.8,
+      "label": "UI (smoke)",
+      "tool": "Playwright",
+      "scope": "@smoke journeys on chromium",
+      "exit_code": 0,
+      "command": "npx playwright test --project=chromium --grep @smoke",
+      "wall_seconds": 17.0
+    },
+    "api-regression": {
+      "passed": 23,
+      "failed": 0,
+      "skipped": 0,
+      "total": 23,
+      "seconds": 177.2,
+      "label": "API (regression)",
+      "tool": "Karate",
+      "scope": "Every scenario, all tags",
+      "exit_code": 0,
+      "command": "mvn -B test -Dtest=BookStoreApiTest -Dkarate.env=dev",
+      "wall_seconds": 59.0
+    },
+    "ui-regression": {
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "total": 7,
+      "seconds": 55.7,
+      "label": "UI (regression)",
+      "tool": "Playwright",
+      "scope": "Every spec on chromium",
+      "exit_code": 0,
+      "command": "npx playwright test --project=chromium",
+      "wall_seconds": 23.6
+    }
+  }
+}

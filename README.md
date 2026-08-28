@@ -27,6 +27,32 @@ Karate      23 scenarios passed, 0 failed
 Building them surfaced **11 defects and observations** in the application under test,
 documented with reproduction steps in Appendix B of the assessment document.
 
+## Executive test metrics
+
+<!-- metrics:start -->
+**14 test cases, 14 passed, 0 failed — a 100% pass rate** on the smoke gate, measured at commit `523ad20` by executing every suite rather than by counting source.
+
+```mermaid
+pie showData title Smoke gate test cases by layer (14 total)
+    "Unit (Vitest)" : 7
+    "API (Karate)" : 2
+    "UI (Playwright)" : 5
+```
+
+| Test suite / layer | Tool | Total cases | Passed | Failed | Coverage / scope |
+|---|---|--:|--:|--:|---|
+| **Unit** | Vitest | 7 | 7 | 0 | Pure logic in src/ - 100% of the covered surface |
+| **API (smoke)** | Karate | 2 | 2 | 0 | @smoke scenarios - the deployment gate |
+| **UI (smoke)** | Playwright | 5 | 5 | 0 | @smoke journeys on chromium |
+| **Smoke gate total** | — | **14** | **14** | **0** | Runs on every pull request and verifies every production deploy |
+| API (regression) | Karate | 23 | 23 | 0 | Every scenario, all tags |
+| UI (regression) | Playwright | 7 | 7 | 0 | Every spec on chromium |
+
+Unit coverage on the surface unit tests own: Statements 100%, Branches 100%, Functions 100%, Lines 100% — floor 80%.
+
+The regression rows are listed apart from the gate on purpose: reporting "2 API cases" without saying *smoke* would misrepresent a suite that has 23. Regenerate every figure here with `python scripts/collect_test_metrics.py`.
+<!-- metrics:end -->
+
 ## Testing manual
 
 <!-- testing-manual:start -->

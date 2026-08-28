@@ -100,6 +100,25 @@ p[align="center"] img { display: inline-block; }
 .run.pass .hd { background: #ecfdf5; color: var(--ok); }
 .run.fail .hd { background: #fef2f2; color: var(--bad); }
 .run pre { margin: 0; border: 0; border-radius: 0; border-left: 0; max-height: none; }
+.cards { display: flex; gap: 10px; margin: 1em 0; page-break-inside: avoid; }
+.card { flex: 1; border: 1px solid var(--rule); border-radius: 7px; padding: .75em .5em;
+        text-align: center; background: #fbfcfd; }
+.card .n { font-size: 21pt; font-weight: 700; color: var(--accent); line-height: 1.1; }
+.card .l { font-size: 8pt; color: var(--muted); text-transform: uppercase;
+           letter-spacing: .04em; margin-top: .25em; }
+.card.good .n { color: var(--ok); }
+.card.bad .n { color: var(--bad); }
+.badge { display: inline-block; padding: .12em .5em; border-radius: 10px;
+         font-size: 8.5pt; font-weight: 600; }
+.badge.ok { background: #ecfdf5; color: var(--ok); border: 1px solid #a7f3d0; }
+.badge.no { background: #fef2f2; color: var(--bad); border: 1px solid #fecaca; }
+.chartwrap { display: flex; align-items: center; gap: 20px; margin: 1em 0;
+             page-break-inside: avoid; }
+.chartwrap svg { flex: 0 0 auto; }
+.legend { font-size: 9.5pt; }
+.legend div { margin: .3em 0; }
+.legend .sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px;
+              margin-right: 7px; vertical-align: -1px; }
 """
 
 
@@ -153,6 +172,104 @@ def coverage_table() -> str:
     return ("<h3>Measured coverage</h3>"
             "<table><tr><th>Metric</th><th>Covered</th><th>Total</th><th>%</th></tr>"
             f"{rows}</table>")
+
+
+SLICE_COLOURS = ("#1f4e79", "#2e8b95", "#7aa6c2")
+
+
+def donut_svg(slices: list[tuple[str, int, str]], size: int = 190) -> str:
+    """Inline SVG donut. Vector, so it stays sharp at any print resolution -
+    which a rasterised chart pasted in at 96dpi would not."""
+    import math
+    total = sum(n for _, n, _ in slices) or 1
+    cx = cy = size / 2
+    r_out, r_in = size / 2 - 4, size / 2 - 34
+    parts, angle = [], -math.pi / 2      # start at twelve o'clock
+    for label, value, colour in slices:
+        if not value:
+            continue
+        sweep = 2 * math.pi * value / total
+        end = angle + sweep
+        large = 1 if sweep > math.pi else 0
+        x1, y1 = cx + r_out * math.cos(angle), cy + r_out * math.sin(angle)
+        x2, y2 = cx + r_out * math.cos(end), cy + r_out * math.sin(end)
+        x3, y3 = cx + r_in * math.cos(end), cy + r_in * math.sin(end)
+        x4, y4 = cx + r_in * math.cos(angle), cy + r_in * math.sin(angle)
+        parts.append(
+            '<path d="M{:.2f} {:.2f} A{:.2f} {:.2f} 0 {} 1 {:.2f} {:.2f} '
+            'L{:.2f} {:.2f} A{:.2f} {:.2f} 0 {} 0 {:.2f} {:.2f} Z" fill="{}"/>'
+            .format(x1, y1, r_out, r_out, large, x2, y2, x3, y3,
+                    r_in, r_in, large, x4, y4, colour))
+        angle = end
+    return ('<svg width="{s}" height="{s}" viewBox="0 0 {s} {s}" '
+            'xmlns="http://www.w3.org/2000/svg">{p}'
+            '<text x="{c}" y="{c}" text-anchor="middle" dy="-2" '
+            'font-family="Segoe UI,sans-serif" font-size="26" font-weight="700" '
+            'fill="#1f4e79">{t}</text>'
+            '<text x="{c}" y="{c}" text-anchor="middle" dy="16" '
+            'font-family="Segoe UI,sans-serif" font-size="9" fill="#6b7280">'
+            'CASES</text></svg>').format(s=size, p="".join(parts), c=cx, t=total)
+
+
+def metrics_html() -> str:
+    """Executive dashboard, generated from the recorded run - never hand-typed."""
+    path = ROOT / "docs" / "test-metrics.json"
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return ""
+    head, suites = data["headline"], data["suites"]
+    cov = data.get("coverage") or {}
+
+    cards = [
+        ("", head["total"], "test cases"),
+        ("good" if not head["failed"] else "", "%.0f%%" % head["pass_rate"], "pass rate"),
+        ("bad" if head["failed"] else "good", head["failed"], "failed"),
+    ]
+    if cov:
+        cards.append(("good" if min(cov.values()) >= 80 else "bad",
+                      "%.0f%%" % cov.get("lines", 0), "line coverage"))
+    cards_html = "".join(
+        '<div class="card {}"><div class="n">{}</div><div class="l">{}</div></div>'
+        .format(cls, val, lab) for cls, val, lab in cards)
+
+    slices, legend = [], []
+    for i, key in enumerate(data["headline_scope"]):
+        s, colour = suites[key], SLICE_COLOURS[i % len(SLICE_COLOURS)]
+        slices.append((s["label"], s["total"], colour))
+        legend.append('<div><span class="sw" style="background:{}"></span>'
+                      '<strong>{}</strong> — {} case{} ({})</div>'
+                      .format(colour, html.escape(s["label"]), s["total"],
+                              "" if s["total"] == 1 else "s", html.escape(s["tool"])))
+
+    rows = []
+    order = list(data["headline_scope"]) + ["api-regression", "ui-regression"]
+    for key in order:
+        s = suites[key]
+        badge = ('<span class="badge ok">100%</span>' if s["total"] and not s["failed"]
+                 else '<span class="badge no">%d failed</span>' % s["failed"])
+        rows.append("<tr><td>{}</td><td>{}</td><td align=\"right\">{}</td>"
+                    "<td align=\"right\">{}</td><td align=\"right\">{}</td>"
+                    "<td>{}</td><td>{}</td></tr>".format(
+                        html.escape(s["label"]), html.escape(s["tool"]), s["total"],
+                        s["passed"], s["failed"], badge, html.escape(s["scope"])))
+
+    return """<h2>Executive test metrics</h2>
+<p>Every figure below was produced by executing the suites at commit
+<code>{sha}</code>, not by counting source. Regenerate with
+<code>python scripts/collect_test_metrics.py</code>.</p>
+<div class="cards">{cards}</div>
+<h3>Smoke gate by layer</h3>
+<div class="chartwrap">{donut}<div class="legend">{legend}</div></div>
+<table><tr><th>Test suite / layer</th><th>Tool</th><th>Total</th><th>Passed</th>
+<th>Failed</th><th>Result</th><th>Coverage / scope</th></tr>{rows}</table>
+<p>The smoke gate is the first three rows: what a pull request runs and what
+verifies a production deployment. The regression rows are shown apart from it
+deliberately &mdash; quoting the API layer as {api} cases without saying
+<em>smoke</em> would misrepresent a suite that has {apireg}.</p>""".format(
+        sha=html.escape(data.get("commit", "")), cards=cards_html,
+        donut=donut_svg(slices), legend="".join(legend), rows="".join(rows),
+        api=suites["api-smoke"]["total"], apireg=suites["api-regression"]["total"])
 
 
 def results_html(results: list[dict]) -> str:
@@ -229,7 +346,7 @@ def build_html(manual_md: str, results: list[dict]) -> str:
     </div>"""
     return (f"<!doctype html><html><head><meta charset='utf-8'>"
             f"<title>Book Store QA — testing manual</title><style>{CSS}</style>"
-            f"</head><body>{cover}{body}{results_html(results)}</body></html>")
+            f"</head><body>{cover}{metrics_html()}{body}{results_html(results)}</body></html>")
 
 
 def render(html_text: str, keep: bool = False) -> None:
