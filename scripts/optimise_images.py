@@ -4,7 +4,7 @@
 The terminal captures are 2400px wide but contain only a couple of thousand
 distinct colours, so a 256-colour palette is visually lossless on them and
 roughly halves the file. That matters because the images are most of
-testing_manual_report.pdf, and a large PDF is what GitHub's in-browser viewer
+testing_report.pdf, and a large PDF is what GitHub's in-browser viewer
 declines to render.
 
 Downscaling was tried first and made things WORSE - resampling a screenshot of

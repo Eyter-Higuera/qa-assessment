@@ -3,7 +3,7 @@
 
 The manual points at ten screenshots that have to be captured by hand. Until
 they are, the references would render as broken images on GitHub and as gaps in
-testing_manual_report.pdf. This writes a labelled placeholder for each one
+testing_report.pdf. This writes a labelled placeholder for each one
 instead: same filename, same aspect, and the command to run written across it,
 so the document is presentable and every slot says what belongs in it.
 

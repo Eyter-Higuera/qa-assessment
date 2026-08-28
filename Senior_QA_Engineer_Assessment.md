@@ -5,7 +5,7 @@
 > The automation described in Part 1.2 is in this repository and was executed against the
 > live application: **7 Playwright tests** and **23 Karate scenarios** passing, with
 > **11 defects and observations** found along the way (Appendix B).
-> A formatted, printable version of this document is at [docs/assessment.html](docs/assessment.html).
+> A formatted, printable version of this document is at [docs/test_strategy_design.html](docs/test_strategy_design.html).
 
 ---
 

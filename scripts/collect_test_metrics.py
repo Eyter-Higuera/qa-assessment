@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Run the suites and record exactly how many tests each one has.
 
-The executive metrics in README.md and testing_manual_report.pdf are generated
+The executive metrics in README.md and testing_report.pdf are generated
 from docs/test-metrics.json, which this writes. Nothing about the counts is
 typed by hand: each suite is executed and its JUnit XML counted, so the table
 cannot quietly drift away from the suites it describes.

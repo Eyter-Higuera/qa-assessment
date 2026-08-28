@@ -8,7 +8,7 @@ Written submission and working automation for the
 | Deliverable | Where |
 |---|---|
 | **Written document** — all questions, Parts 1–3, plus test plan and defect log | [Senior_QA_Engineer_Assessment.md](Senior_QA_Engineer_Assessment.md) |
-| Same document, formatted | [docs/assessment.pdf](https://github.com/Eyter-Higuera/qa-assessment/raw/main/docs/assessment.pdf) — 52 pages · source [docs/assessment.html](docs/assessment.html) |
+| Same document, formatted | [docs/test_strategy_design.pdf](https://github.com/Eyter-Higuera/qa-assessment/raw/main/docs/test_strategy_design.pdf) — 52 pages · source [docs/test_strategy_design.html](docs/test_strategy_design.html) |
 | Web automation (Playwright + TypeScript) | [`playwright/`](playwright/) |
 | API automation (Karate + Java) | [`karate/`](karate/) |
 
@@ -480,7 +480,7 @@ Two panels reach the same commands without typing anything.
 | **Pipeline: custom…** | prompts for stage, suite and browser, then runs it |
 | Pipeline: custom… (dry run) | the same prompts, printing the commands instead |
 | Docs: collect test metrics | re-runs the suites and rewrites the metrics section |
-| Docs: regenerate testing_manual_report.pdf | rebuilds the PDF |
+| Docs: regenerate testing_report.pdf | rebuilds the PDF |
 
 *Pipeline: dev smoke* is the default test task, so `Ctrl+Shift+P` →
 **Tasks: Run Test Task** starts it directly. *Pipeline: custom…* uses VS Code's
@@ -552,7 +552,7 @@ configuration is considerably slower than the local runner.
 
 ### Regenerating the PDF
 
-[`testing_manual_report.pdf`](https://github.com/Eyter-Higuera/qa-assessment/raw/main/testing_manual_report.pdf) is this manual, styled, with
+[`testing_report.pdf`](https://github.com/Eyter-Higuera/qa-assessment/raw/main/testing_report.pdf) is this manual, styled, with
 the three suites executed and their real output appended:
 
 ```bash
@@ -739,11 +739,11 @@ for when the summary is not enough and you want the trace viewer.
 
 ```
 Senior_QA_Engineer_Assessment.md   the written submission
-docs/assessment.html               the same document, formatted for reading and print
-docs/assessment.pdf                that document rendered to PDF
+docs/test_strategy_design.html     the same document, formatted for reading and print
+docs/test_strategy_design.pdf      that document rendered to PDF
 playwright/                        web automation — page objects, fixtures, specs
 karate/                            API automation — feature files and JUnit runners
-testing_manual_report.pdf          the testing manual as a styled PDF, with real captured output
+testing_report.pdf                 the testing manual as a styled PDF, with real captured output
                                    (linked by absolute raw URL — see the note under The submission)
 scripts/build_testing_report.py    regenerates that PDF from the manual below
 docs/images/                       screenshots the manual references

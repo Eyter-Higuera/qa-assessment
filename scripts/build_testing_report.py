@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build testing_manual_report.pdf from the manual in README.md.
+"""Build testing_report.pdf from the manual in README.md.
 
 The manual is not duplicated here. It is read from README.md between the
 `testing-manual` markers, so the PDF cannot drift from the document people
@@ -29,7 +29,7 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT_PDF = ROOT / "testing_manual_report.pdf"
+OUT_PDF = ROOT / "testing_report.pdf"
 MARKER = re.compile(
     r"<!--\s*testing-manual:start\s*-->(.*?)<!--\s*testing-manual:end\s*-->",
     re.S,

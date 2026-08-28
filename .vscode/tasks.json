@@ -137,7 +137,7 @@
       "problemMatcher": []
     },
     {
-      "label": "Docs: regenerate testing_manual_report.pdf",
+      "label": "Docs: regenerate testing_report.pdf",
       "detail": "Runs the suites and rebuilds the PDF from the manual in README.md.",
       "type": "process",
       "command": "python",
