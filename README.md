@@ -198,9 +198,27 @@ host comes from the `RELEASE_BASE_URL` repository variable instead. Reports land
 
 #### UI tests (Playwright)
 
+> **Run every command in this section from `playwright/`**, not from the repository
+> root. Playwright is a dev dependency of that package, and its config lives there.
+>
+> Two symptoms tell you that you are in the wrong directory. `npx` offers to download
+> a throwaway copy — *"Need to install the following packages: playwright@…  Ok to
+> proceed?"* — and, having found no config, it then reports
+>
+> ```
+> Error: Project(s) "chromium" not found. Available projects: ""
+> ```
+>
+> An empty *available projects* list always means the config was not found, never
+> that the project is misspelled. `cd playwright` and run it again.
+
 ```bash
 cd playwright
 npx playwright install chromium              # or: firefox webkit msedge
+```
+```powershell
+Set-Location playwright
+npx playwright install chromium
 ```
 
 **Dev** — smoke on chromium:
