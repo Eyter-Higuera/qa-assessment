@@ -1,0 +1,25 @@
+# Declare binary formats explicitly.
+#
+# Git already detects these by content, and on this machine Git for Windows'
+# global gitattributes adds `*.pdf diff=astextplain` on top. But both of those
+# are local: a fresh clone elsewhere, and GitHub's own file viewer, see only
+# what the repository declares. Stating it here makes the classification travel
+# with the repository instead of depending on whose machine it is on.
+#
+# `binary` is shorthand for `-text -diff -merge`: never convert line endings,
+# never attempt a textual diff, never try to merge hunks.
+
+*.pdf   binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.webp  binary
+*.zip   binary
+*.jar   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.mp4   binary
+*.webm  binary
