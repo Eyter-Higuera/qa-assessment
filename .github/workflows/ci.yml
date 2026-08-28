@@ -161,6 +161,15 @@ jobs:
       release_browsers: ${{ steps.resolve.outputs.release_browsers }}
       run_chain: ${{ steps.resolve.outputs.run_chain }}
       production_suite: ${{ steps.resolve.outputs.production_suite }}
+      # Still published, and still used inside the jobs below - but deliberately
+      # not in any job NAME. Observed in a real run: the three plain jobs that
+      # carried it (promote x2, deploy) rendered the raw
+      # "Promote ${{ needs.config.outputs.short_sha }} to release" in the graph
+      # when they were skipped, while production-verify, which is a
+      # workflow_call job, evaluated its name normally in the same run. The
+      # asymmetry is unexplained; the fix is simply to keep expressions out of
+      # names that have to read well while skipped. The commit is on the run
+      # summary's "Commit:" line, which renders either way.
       short_sha: ${{ steps.resolve.outputs.short_sha }}
     steps:
       - name: Resolve entry point, suites, browsers and promotion
@@ -403,7 +412,7 @@ jobs:
       browsers: ${{ needs.config.outputs.browsers }}
 
   promote-to-release:
-    name: 1b. Promote ${{ needs.config.outputs.short_sha }} to release
+    name: 1b. Promote to release
     needs: [config, dev-tests]
     # No status function here on purpose: the default needs-semantics already
     # require dev-tests to have succeeded.
@@ -471,7 +480,7 @@ jobs:
       browsers: ${{ needs.config.outputs.release_browsers }}
 
   promote-to-main:
-    name: 2b. Promote ${{ needs.config.outputs.short_sha }} to main
+    name: 2b. Promote to main
     needs: [config, release-tests]
     # release-tests is reached by two different paths, so its result is checked
     # explicitly rather than left to the default needs-semantics.
@@ -522,7 +531,7 @@ jobs:
   # promotion between branches, and main has nowhere further to promote to.
   # ---------------------------------------------------------------------------
   deploy-production:
-    name: 3. Deploy ${{ needs.config.outputs.short_sha }} to production
+    name: 3. Deploy to production
     needs: [config, unit-tests, promote-to-main]
     if: >-
       !cancelled() &&
