@@ -17,7 +17,10 @@ target/
 # Tooling
 karate.jar
 .idea/
-.vscode/
+# Editor settings stay local, but the shared task shortcuts are checked in.
+.vscode/*
+!.vscode/tasks.json
+!.vscode/extensions.json
 *.iml
 .DS_Store
 Thumbs.db

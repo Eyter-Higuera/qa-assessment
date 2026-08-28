@@ -1,0 +1,172 @@
+{
+  // Shortcuts for the local pipeline. Ctrl+Shift+P -> "Tasks: Run Task".
+  //
+  // Every task uses type "process", not "shell": VS Code then passes the args
+  // array straight to the executable with no shell in between. That matters
+  // here - a shell would reintroduce exactly the quoting bug that made
+  // `--grep @smoke` vanish under PowerShell, since VS Code launches tasks with
+  // the user's default shell, whatever that happens to be.
+  "version": "2.0.0",
+  "options": {
+    // Tasks run from the repository root regardless of the file you have open.
+    "cwd": "${workspaceFolder}"
+  },
+  "presentation": {
+    "echo": true,
+    "reveal": "always",
+    "panel": "dedicated",
+    "clear": true
+  },
+  "tasks": [
+    {
+      "label": "Pipeline: dev smoke (chromium)",
+      "detail": "unit → api → ui, @smoke only. The pull-request gate — fastest useful signal.",
+      "type": "process",
+      "command": "node",
+      "args": ["scripts/pipeline.mjs", "--stage", "dev", "--suite", "smoke", "--browser", "chromium"],
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Pipeline: dev regression (chromium)",
+      "detail": "unit → api → ui, full depth on one browser.",
+      "type": "process",
+      "command": "node",
+      "args": ["scripts/pipeline.mjs", "--stage", "dev", "--suite", "regression", "--browser", "chromium"],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Pipeline: dev regression (all browsers)",
+      "detail": "Full depth across chromium, firefox, webkit and msedge — what the release stage runs in CI.",
+      "type": "process",
+      "command": "node",
+      "args": ["scripts/pipeline.mjs", "--stage", "dev", "--suite", "regression", "--browser", "all"],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Pipeline: release smoke",
+      "type": "process",
+      "command": "node",
+      "args": ["scripts/pipeline.mjs", "--stage", "release", "--suite", "smoke", "--browser", "chromium"],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Pipeline: release regression (all browsers)",
+      "detail": "The full pre-production sweep.",
+      "type": "process",
+      "command": "node",
+      "args": ["scripts/pipeline.mjs", "--stage", "release", "--suite", "regression", "--browser", "all"],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Pipeline: production smoke",
+      "detail": "Post-deployment verification against the production host.",
+      "type": "process",
+      "command": "node",
+      "args": ["scripts/pipeline.mjs", "--stage", "production", "--suite", "smoke", "--browser", "chromium"],
+      "group": "test",
+      "problemMatcher": []
+    },
+
+    {
+      "label": "Layer: unit only (Vitest + coverage)",
+      "detail": "Sub-second feedback. No browser, no network.",
+      "type": "process",
+      "command": "node",
+      "args": ["scripts/pipeline.mjs", "--suite", "unit"],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Layer: API only (Karate)",
+      "type": "process",
+      "command": "node",
+      "args": ["scripts/pipeline.mjs", "--suite", "api"],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Layer: UI only (Playwright)",
+      "type": "process",
+      "command": "node",
+      "args": ["scripts/pipeline.mjs", "--suite", "ui"],
+      "group": "test",
+      "problemMatcher": []
+    },
+
+    {
+      "label": "Pipeline: custom…",
+      "detail": "Prompts for stage, suite and browser, then runs that combination.",
+      "type": "process",
+      "command": "node",
+      "args": [
+        "scripts/pipeline.mjs",
+        "--stage", "${input:stage}",
+        "--suite", "${input:suite}",
+        "--browser", "${input:browser}"
+      ],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Pipeline: custom… (dry run)",
+      "detail": "Same prompts, but prints the resolved commands instead of running them.",
+      "type": "process",
+      "command": "node",
+      "args": [
+        "scripts/pipeline.mjs",
+        "--stage", "${input:stage}",
+        "--suite", "${input:suite}",
+        "--browser", "${input:browser}",
+        "--dry-run"
+      ],
+      "group": "test",
+      "problemMatcher": []
+    },
+
+    {
+      "label": "Docs: collect test metrics",
+      "detail": "Runs every suite and rewrites docs/test-metrics.json and the README metrics section.",
+      "type": "process",
+      "command": "python",
+      "args": ["scripts/collect_test_metrics.py"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Docs: regenerate testing_manual_report.pdf",
+      "detail": "Runs the suites and rebuilds the PDF from the manual in README.md.",
+      "type": "process",
+      "command": "python",
+      "args": ["scripts/build_testing_report.py"],
+      "problemMatcher": []
+    }
+  ],
+
+  "inputs": [
+    {
+      "id": "stage",
+      "type": "pickString",
+      "description": "Environment",
+      "options": ["dev", "release", "production"],
+      "default": "dev"
+    },
+    {
+      "id": "suite",
+      "type": "pickString",
+      "description": "Suite — unit/api/ui run one layer; smoke/regression run all three",
+      "options": ["smoke", "regression", "unit", "api", "ui"],
+      "default": "smoke"
+    },
+    {
+      "id": "browser",
+      "type": "pickString",
+      "description": "Playwright browser",
+      "options": ["chromium", "firefox", "webkit", "msedge", "all"],
+      "default": "chromium"
+    }
+  ]
+}

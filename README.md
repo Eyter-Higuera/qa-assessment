@@ -456,6 +456,46 @@ rather than passing them on.
   <img src="docs/images/local-pipeline-production-webkit.png" width="100%" alt="Production smoke on webkit through the local runner" />
 </p>
 
+#### Running it from VS Code
+
+Two panels reach the same commands without typing anything.
+
+**Tasks** — `Ctrl+Shift+P` → **Tasks: Run Task**. Thirteen entries are defined in
+[`.vscode/tasks.json`](.vscode/tasks.json):
+
+| Task | Runs |
+|---|---|
+| **Pipeline: dev smoke (chromium)** | the pull-request gate — also the default test task |
+| Pipeline: dev regression (chromium) | full depth, one browser |
+| Pipeline: dev regression (all browsers) | what the release stage runs in CI |
+| Pipeline: release smoke / regression | pre-production |
+| Pipeline: production smoke | post-deployment verification |
+| Layer: unit / API / UI only | one layer at a time |
+| **Pipeline: custom…** | prompts for stage, suite and browser, then runs it |
+| Pipeline: custom… (dry run) | the same prompts, printing the commands instead |
+| Docs: collect test metrics | re-runs the suites and rewrites the metrics section |
+| Docs: regenerate testing_manual_report.pdf | rebuilds the PDF |
+
+*Pipeline: dev smoke* is the default test task, so `Ctrl+Shift+P` →
+**Tasks: Run Test Task** starts it directly. *Pipeline: custom…* uses VS Code's
+`pickString` inputs, so the three parameters arrive as dropdowns rather than
+remembered flags.
+
+**NPM Scripts** — the panel in the Explorer sidebar (enable with
+`"npm.enableScriptExplorer": true` if you do not see it) lists every script in
+the root [`package.json`](package.json): `dev:smoke`, `release:regression`,
+`production:smoke`, `test:unit`, and so on. Clicking one runs it in a terminal.
+Scripts from `playwright/package.json` appear there too, under that folder.
+
+Both routes end up at the same `scripts/pipeline.mjs`, so a task, an npm script
+and a hand-typed command produce identical runs.
+
+One detail in the task definitions worth keeping if you edit them: every task is
+`"type": "process"`, not `"shell"`. VS Code launches shell tasks with your
+default shell, so on Windows a `shell` task would hand `--grep @smoke` to
+PowerShell and the tag would vanish — the same bug documented above. `process`
+passes the argument array straight to the executable, with nothing in between.
+
 #### Why a runner rather than raw commands
 
 Two bugs in this repository came from shells rather than from tests, and the
@@ -699,6 +739,10 @@ karate/                            API automation — feature files and JUnit ru
 testing_manual_report.pdf          the testing manual as a styled PDF, with real captured output
 scripts/build_testing_report.py    regenerates that PDF from the manual below
 docs/images/                       screenshots the manual references
+.vscode/tasks.json                 pipeline shortcuts for the VS Code task runner
+package.json                       npm entry points for the local pipeline
+scripts/pipeline.mjs               the local pipeline runner
+.github/act/                       event payloads for running ci.yml under act
 .github/workflows/ci.yml           eyter_dev → release → main promotion chain; see CI/CD above
 .github/workflows/test-stage.yml   reusable Karate + Playwright stage, called once per environment
 ```
