@@ -169,6 +169,26 @@ def render(html_text: str, png: Path) -> None:
         tmp.unlink(missing_ok=True)
 
 
+def _quantise(png: Path) -> None:
+    """A 256-colour palette is lossless on a terminal capture and halves it.
+    Applied at capture time so the images never enter the repository large."""
+    try:
+        from PIL import Image
+    except ImportError:
+        return
+    try:
+        with Image.open(png) as im:
+            data = im.convert("RGB").quantize(colors=256, method=Image.MEDIANCUT)
+            buf = png.with_suffix(".tmp.png")
+            data.save(buf, optimize=True)
+        if buf.stat().st_size < png.stat().st_size:
+            buf.replace(png)
+        else:
+            buf.unlink(missing_ok=True)
+    except Exception:
+        pass          # a bigger screenshot is not worth failing a capture over
+
+
 def capture(key: str) -> tuple[str, int]:
     name, cwd, argv, extra = CAPTURES[key]
     exe = shutil.which(argv[0]) or shutil.which(argv[0] + ".cmd")
@@ -184,6 +204,7 @@ def capture(key: str) -> tuple[str, int]:
     output = ((proc.stdout or "") + (proc.stderr or "")).strip()
     render(card_html(cwd, argv, extra, ansi_to_html(clip(output)),
                      proc.returncode, seconds), IMAGES / name)
+    _quantise(IMAGES / name)
     verdict = "passed" if proc.returncode == 0 else f"FAILED (exit {proc.returncode})"
     print(f"  {key}: {verdict} in {seconds:.1f}s -> docs/images/{name}")
     return key, proc.returncode
