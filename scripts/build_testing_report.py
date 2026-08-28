@@ -84,7 +84,15 @@ blockquote p { margin: .25em 0; }
         font-size: 9pt; page-break-inside: avoid; }
 .shot .label { font-weight: 600; color: #475569; display: block; margin-bottom: .2em; }
 .shot .path { font-family: Consolas, monospace; font-size: 8pt; }
-img { max-width: 100%; border: 1px solid var(--rule); border-radius: 4px; }
+/* An image is never printed wider than the page, and never wider than the width
+   the manual asked for. The two portrait CI captures are only 345px and 569px
+   across; stretching those to the full 180mm text column is what made them
+   blurry, because there are no more pixels to show. The terminal captures are
+   2400px wide and downscale, so they stay at 100%. */
+img { max-width: 100%; height: auto; border: 1px solid var(--rule);
+      border-radius: 4px; page-break-inside: avoid; }
+p[align="center"] { text-align: center; margin: .9em 0; }
+p[align="center"] img { display: inline-block; }
 .run { border: 1px solid var(--rule); border-radius: 6px; margin: 1em 0;
        page-break-inside: avoid; }
 .run .hd { padding: .5em .8em; font-weight: 600; border-bottom: 1px solid var(--rule);
@@ -243,7 +251,12 @@ def render(html_text: str, keep: bool = False) -> None:
             [node, "scripts/html-to-pdf.mjs", str(tmp), str(OUT_PDF)],
             cwd=ROOT / "playwright", capture_output=True, text=True)
         if proc.returncode != 0:
-            sys.exit((proc.stderr or proc.stdout).strip() or "PDF rendering failed")
+            detail = (proc.stderr or proc.stdout).strip()
+            if "EBUSY" in detail or "EPERM" in detail:
+                # Windows locks an open PDF, and the raw node error buries why.
+                sys.exit(f"{OUT_PDF.name} is open in another program - close the "
+                         "PDF viewer and run this again.")
+            sys.exit(detail or "PDF rendering failed")
         print(f"rendered with Chromium -> {OUT_PDF.name}")
     finally:
         if keep:

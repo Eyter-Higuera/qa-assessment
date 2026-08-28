@@ -263,7 +263,7 @@ With *Promote* unticked the run stops after the dev stage: nothing is promoted, 
 branch moves, nothing is deployed.
 
 <p align="center">
-  <img src="docs/images/ci-scenario-a-eyter-dev.png" width="100%" alt="Scenario A — full chain from eyter_dev" />
+  <img src="docs/images/ci-scenario-a-eyter-dev.png" width="345" alt="Scenario A — full chain from eyter_dev" />
 </p>
 
 #### Scenario B — running from `release` or `main`
@@ -297,7 +297,7 @@ suite with pass/fail/skip counts and durations, and, when something fails, a sec
 table naming each failing test with the first line of its error.
 
 <p align="center">
-  <img src="docs/images/ci-job-summary.png" width="100%" alt="The GitHub job summary" />
+  <img src="docs/images/ci-job-summary.png" width="520" alt="The GitHub job summary" />
 </p>
 
 <!-- testing-manual:end -->
