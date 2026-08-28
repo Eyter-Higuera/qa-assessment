@@ -14,10 +14,11 @@ working, this script produces a screenshot of it failing rather than a tidy
 fiction, which is the point: the manual then shows the truth and someone fixes
 the command.
 
-Only the seven local captures are produced. The three CI images
-(ci-scenario-*.png, ci-job-summary.png) are screenshots of GitHub's own UI and
-have to be taken by hand from a signed-in browser; drawing something that looked
-like them here would be a fabrication, not a capture.
+Only the local captures are produced - the individual suites and the pipeline
+runner. The three CI images (ci-scenario-*.png, ci-job-summary.png) are
+screenshots of GitHub's own UI and have to be taken by hand from a signed-in
+browser; drawing something that looked like them here would be a fabrication,
+not a capture.
 """
 from __future__ import annotations
 
@@ -59,9 +60,22 @@ CAPTURES: dict[str, tuple[str, Path, list[str], dict]] = {
     "playwright-production": ("local-playwright-production.png", PW,
                               ["npx", "playwright", "test", "--project=msedge",
                                "--grep", "@smoke"], {"BASE_URL": DEMO}),
+
+    # The local pipeline runner, exercising the matrix the way CI does.
+    "pipeline-dry": ("local-pipeline-matrix.png", ROOT,
+                     ["node", "scripts/pipeline.mjs", "--stage", "release",
+                      "--suite", "regression", "--browser", "all", "--dry-run"], {}),
+    "pipeline-dev-smoke": ("local-pipeline-dev-smoke.png", ROOT,
+                           ["npm", "run", "dev:smoke"], {}),
+    "pipeline-regression-firefox": ("local-pipeline-regression-firefox.png", ROOT,
+                                    ["node", "scripts/pipeline.mjs", "--stage", "dev",
+                                     "--suite", "regression", "--browser", "firefox"], {}),
+    "pipeline-production-webkit": ("local-pipeline-production-webkit.png", ROOT,
+                                   ["node", "scripts/pipeline.mjs", "--stage", "production",
+                                    "--suite", "smoke", "--browser", "webkit"], {}),
 }
 
-MAX_LINES = 46          # keeps an image readable on an A4 page
+MAX_LINES = 52          # keeps an image readable on an A4 page
 ANSI = re.compile(r"\x1b\[([0-9;]*)m")
 STRIP_OTHER = re.compile(r"\x1b\[[0-9;?]*[A-HJKSTfhlsu]|\x1b\][^\x07]*\x07|[\r\x08]")
 

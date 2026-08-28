@@ -349,6 +349,159 @@ table naming each failing test with the first line of its error.
   <img src="docs/images/ci-job-summary.png" width="520" alt="The GitHub job summary" />
 </p>
 
+### 4. Local pipeline simulation & multi-environment matrix guide
+
+The pipeline can be run end to end on a laptop, with the same stages, the same
+order and the same parameters as CI. One entry point covers the whole matrix:
+
+```bash
+node scripts/pipeline.mjs --stage <dev|release|production> \
+                          --suite <unit|api|ui|smoke|regression> \
+                          --browser <chromium|firefox|webkit|msedge|all>
+```
+
+```powershell
+node scripts/pipeline.mjs --stage dev --suite smoke --browser chromium
+```
+
+The same line works in both shells, and from any directory in the repository.
+That is deliberate — see *Why a runner rather than raw commands* below.
+
+<p align="center">
+  <img src="docs/images/local-pipeline-matrix.png" width="100%" alt="Resolving a matrix combination with --dry-run" />
+</p>
+
+#### The three parameters
+
+| Parameter | Values | What it changes |
+|---|---|---|
+| `--stage` | `dev`, `release`, `production` | `BASE_URL` for Playwright and `-Dkarate.env` / `-DbaseUrl` for Karate |
+| `--suite` | `unit`, `api`, `ui`, `smoke`, `regression` | Which layers run, and how deep |
+| `--browser` | `chromium`, `firefox`, `webkit`, `msedge`, `all` | One Playwright project each; `all` runs the four together |
+
+`unit`, `api` and `ui` run that layer **alone and in full**. `smoke` and
+`regression` run **all three layers** in the CI order — shallow or deep:
+
+```
+unit (Vitest)  →  api (Karate)  →  ui (Playwright)
+```
+
+A failing layer stops the run and the later ones are reported as skipped, exactly
+as the workflow does. Add `--dry-run` to print the resolved commands without
+executing anything — the quickest way to check what a combination will do.
+
+#### Where BASE_URL comes from
+
+Hosts are read from the environment first and fall back to the public demo site,
+mirroring the repository variables CI uses. The runner prints which source it
+used, so a run never leaves you guessing what it tested:
+
+| Stage | Environment variable | Fallback |
+|---|---|---|
+| `dev` | `DEV_BASE_URL`, then `STAGING_BASE_URL` | `https://demoqa.com` |
+| `release` | `RELEASE_BASE_URL` | `https://demoqa.com` |
+| `production` | `PRODUCTION_BASE_URL` | `https://demoqa.com` |
+
+```bash
+DEV_BASE_URL=https://dev.internal node scripts/pipeline.mjs --stage dev --suite smoke
+```
+
+```powershell
+$env:DEV_BASE_URL='https://dev.internal'; node scripts/pipeline.mjs --stage dev --suite smoke
+```
+
+#### npm shortcuts
+
+Run these from the repository root. They are thin wrappers over the same script,
+so anything below can also be spelled out with explicit flags:
+
+```bash
+npm run dev:smoke              # unit → api → ui, smoke, chromium
+npm run dev:regression         # the same, full depth
+npm run dev:regression:all     # full depth on all four browsers
+npm run release:smoke
+npm run release:regression     # full depth, all browsers
+npm run production:smoke
+npm run test:unit              # one layer only
+npm run test:api
+npm run test:ui
+npm run pipeline -- --stage release --suite ui --browser webkit
+npm run pipeline:help
+```
+
+The `--` in the last example matters: without it npm keeps the flags for itself
+rather than passing them on.
+
+#### The matrix, and what each combination is for
+
+| Combination | Command | Use |
+|---|---|---|
+| Dev smoke, chromium | `npm run dev:smoke` | The pull-request gate. Fastest useful signal |
+| Dev regression, firefox | `node scripts/pipeline.mjs --stage dev --suite regression --browser firefox` | Engine-specific check before promoting |
+| Dev regression, all | `npm run dev:regression:all` | What the release stage runs in CI |
+| Release regression, all | `npm run release:regression` | Full pre-production sweep |
+| Production smoke, webkit | `node scripts/pipeline.mjs --stage production --suite smoke --browser webkit` | Post-deployment verification |
+| Unit only | `npm run test:unit` | Sub-second feedback while editing helpers |
+| API only | `npm run test:api` | Contract work without a browser |
+
+<p align="center">
+  <img src="docs/images/local-pipeline-dev-smoke.png" width="100%" alt="Dev smoke on chromium through the local runner" />
+</p>
+
+<p align="center">
+  <img src="docs/images/local-pipeline-regression-firefox.png" width="100%" alt="Dev regression on firefox through the local runner" />
+</p>
+
+<p align="center">
+  <img src="docs/images/local-pipeline-production-webkit.png" width="100%" alt="Production smoke on webkit through the local runner" />
+</p>
+
+#### Why a runner rather than raw commands
+
+Two bugs in this repository came from shells rather than from tests, and the
+runner exists so neither can happen again.
+
+- **`--grep @smoke` silently loses its argument in PowerShell.** `@` is the
+  splatting operator, so a bare `@smoke` expands the undefined variable `$smoke`
+  to nothing and Playwright reports *"option '-g, --grep <grep>' argument
+  missing"* — an error that names Playwright for the shell's doing.
+- **Running from the wrong directory** makes `npx` download a throwaway copy of
+  Playwright, which then finds no config and reports
+  *`Project(s) "chromium" not found. Available projects: ""`*.
+
+The runner spawns every command with an argument array and **no shell**, so
+nothing is re-parsed and no quoting rule applies. Paths resolve from the script's
+own location rather than the working directory, so it behaves the same from the
+root or a subfolder. Inputs are checked against allow-lists before they reach a
+command line:
+
+```
+--stage staging     →  must be one of: dev, release, production
+--browser safari    →  must be one of: chromium, firefox, webkit, msedge, all
+```
+
+The network-bound layers get one retry and a per-layer timeout, because
+demoqa.com has been measured answering a login in 25–30s and one slow response
+should not read as a red suite.
+
+#### Running the real workflow with `act`
+
+[`act`](https://github.com/nektos/act) executes `ci.yml` itself in a container,
+which is closer to a GitHub runner than any wrapper can be. It needs Docker, so
+it is the optional route; [`.github/act/`](.github/act/) holds the event payloads
+and `.actrc` pins an image that already has Java and Node:
+
+```bash
+act workflow_dispatch -W .github/workflows/ci.yml -e .github/act/dev-smoke.json
+act workflow_dispatch -W .github/workflows/ci.yml -e .github/act/release-regression.json
+act workflow_dispatch -W .github/workflows/ci.yml -e .github/act/production-smoke.json
+```
+
+Two cautions. `act` runs the promotion jobs too, and those execute real
+`git push` commands — every event file here sets `promote: false` for that
+reason. And it runs the full browser matrix in containers, so a regression
+configuration is considerably slower than the local runner.
+
 <!-- testing-manual:end -->
 
 ### Regenerating the PDF

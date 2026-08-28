@@ -1,0 +1,12 @@
+{
+  "inputs": {
+    "test_suite": "regression",
+    "browser": "all browsers",
+    "promote": "false"
+  },
+  "ref": "refs/heads/release",
+  "repository": {
+    "default_branch": "main",
+    "full_name": "Eyter-Higuera/qa-assessment"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "qa-assessment",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Book Store QA — local pipeline entry points. The suites live in playwright/ and karate/.",
+  "scripts": {
+    "pipeline": "node scripts/pipeline.mjs",
+    "pipeline:help": "node scripts/pipeline.mjs --help",
+
+    "dev:smoke": "node scripts/pipeline.mjs --stage dev --suite smoke --browser chromium",
+    "dev:regression": "node scripts/pipeline.mjs --stage dev --suite regression --browser chromium",
+    "dev:regression:all": "node scripts/pipeline.mjs --stage dev --suite regression --browser all",
+
+    "release:smoke": "node scripts/pipeline.mjs --stage release --suite smoke --browser chromium",
+    "release:regression": "node scripts/pipeline.mjs --stage release --suite regression --browser all",
+
+    "production:smoke": "node scripts/pipeline.mjs --stage production --suite smoke --browser chromium",
+
+    "test:unit": "node scripts/pipeline.mjs --suite unit",
+    "test:api": "node scripts/pipeline.mjs --suite api",
+    "test:ui": "node scripts/pipeline.mjs --suite ui",
+
+    "report": "python scripts/build_testing_report.py",
+    "metrics": "python scripts/collect_test_metrics.py"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,4 @@
+# Java and Node are both needed by this workflow, so the medium image is the
+# smallest one that avoids installing a toolchain on every run.
+-P ubuntu-latest=catthehacker/ubuntu:act-22.04
+--container-architecture linux/amd64
