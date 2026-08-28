@@ -8,12 +8,18 @@ Written submission and working automation for the
 | Deliverable | Where |
 |---|---|
 | **Written document** — all questions, Parts 1–3, plus test plan and defect log | [Senior_QA_Engineer_Assessment.md](Senior_QA_Engineer_Assessment.md) |
-| Same document, formatted | [docs/assessment.pdf](docs/assessment.pdf?raw=1) — 52 pages, downloads directly · source [docs/assessment.html](docs/assessment.html) |
+| Same document, formatted | [docs/assessment.pdf](https://github.com/Eyter-Higuera/qa-assessment/raw/main/docs/assessment.pdf) — 52 pages · source [docs/assessment.html](docs/assessment.html) |
 | Web automation (Playwright + TypeScript) | [`playwright/`](playwright/) |
 | API automation (Karate + Java) | [`karate/`](karate/) |
 
 **The automated flow:** register → login → search & add a book → view the collection →
 delete the book → logout. Automated at both layers.
+
+> **The PDF links above are absolute raw URLs on purpose.** GitHub's in-browser file
+> viewer does not reliably display these PDFs — it answers *"Unable to render code
+> block"* — and a relative link resolves to exactly that viewer. The raw URL serves
+> the file itself, so the browser opens or downloads it. The cost is that the links
+> name this repository, so a fork has to update them.
 
 ## Test results
 
@@ -546,7 +552,7 @@ configuration is considerably slower than the local runner.
 
 ### Regenerating the PDF
 
-[`testing_manual_report.pdf`](testing_manual_report.pdf?raw=1) is this manual, styled, with
+[`testing_manual_report.pdf`](https://github.com/Eyter-Higuera/qa-assessment/raw/main/testing_manual_report.pdf) is this manual, styled, with
 the three suites executed and their real output appended:
 
 ```bash
@@ -738,7 +744,7 @@ docs/assessment.pdf                that document rendered to PDF
 playwright/                        web automation — page objects, fixtures, specs
 karate/                            API automation — feature files and JUnit runners
 testing_manual_report.pdf          the testing manual as a styled PDF, with real captured output
-                                   (link it as ?raw=1 — GitHub's blob viewer struggles with large PDFs)
+                                   (linked by absolute raw URL — see the note under The submission)
 scripts/build_testing_report.py    regenerates that PDF from the manual below
 docs/images/                       screenshots the manual references
 .vscode/tasks.json                 pipeline shortcuts for the VS Code task runner
