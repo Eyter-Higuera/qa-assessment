@@ -16,7 +16,7 @@
     "functions": 100,
     "lines": 100
   },
-  "commit": "523ad20",
+  "commit": "479aa3d",
   "suites": {
     "unit": {
       "passed": 7,
@@ -36,52 +36,52 @@
       "failed": 0,
       "skipped": 0,
       "total": 2,
-      "seconds": 12.5,
+      "seconds": 11.4,
       "label": "API (smoke)",
       "tool": "Karate",
       "scope": "@smoke scenarios - the deployment gate",
       "exit_code": 0,
       "command": "mvn -B test -Dtest=SmokeTest -Dkarate.env=dev",
-      "wall_seconds": 24.1
+      "wall_seconds": 20.6
     },
     "ui-smoke": {
       "passed": 5,
       "failed": 0,
       "skipped": 0,
       "total": 5,
-      "seconds": 35.8,
+      "seconds": 45.6,
       "label": "UI (smoke)",
       "tool": "Playwright",
       "scope": "@smoke journeys on chromium",
       "exit_code": 0,
       "command": "npx playwright test --project=chromium --grep @smoke",
-      "wall_seconds": 17.0
+      "wall_seconds": 17.5
     },
     "api-regression": {
       "passed": 23,
       "failed": 0,
       "skipped": 0,
       "total": 23,
-      "seconds": 177.2,
+      "seconds": 202.1,
       "label": "API (regression)",
       "tool": "Karate",
       "scope": "Every scenario, all tags",
       "exit_code": 0,
       "command": "mvn -B test -Dtest=BookStoreApiTest -Dkarate.env=dev",
-      "wall_seconds": 59.0
+      "wall_seconds": 60.4
     },
     "ui-regression": {
       "passed": 7,
       "failed": 0,
       "skipped": 0,
       "total": 7,
-      "seconds": 55.7,
+      "seconds": 56.2,
       "label": "UI (regression)",
       "tool": "Playwright",
       "scope": "Every spec on chromium",
       "exit_code": 0,
       "command": "npx playwright test --project=chromium",
-      "wall_seconds": 23.6
+      "wall_seconds": 21.7
     }
   }
 }

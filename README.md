@@ -8,7 +8,7 @@ Written submission and working automation for the
 | Deliverable | Where |
 |---|---|
 | **Written document** — all questions, Parts 1–3, plus test plan and defect log | [Senior_QA_Engineer_Assessment.md](Senior_QA_Engineer_Assessment.md) |
-| Same document, formatted — open in a browser, print to PDF | [docs/assessment.html](docs/assessment.html) |
+| Same document, formatted | [docs/assessment.pdf](docs/assessment.pdf) — 52 pages · source [docs/assessment.html](docs/assessment.html) |
 | Web automation (Playwright + TypeScript) | [`playwright/`](playwright/) |
 | API automation (Karate + Java) | [`karate/`](karate/) |
 
@@ -30,7 +30,7 @@ documented with reproduction steps in Appendix B of the assessment document.
 ## Executive test metrics
 
 <!-- metrics:start -->
-**14 test cases, 14 passed, 0 failed — a 100% pass rate** on the smoke gate, measured at commit `523ad20` by executing every suite rather than by counting source.
+**14 test cases, 14 passed, 0 failed — a 100% pass rate** on the smoke gate, measured at commit `479aa3d` by executing every suite rather than by counting source.
 
 ```mermaid
 pie showData title Smoke gate test cases by layer (14 total)
@@ -734,6 +734,7 @@ for when the summary is not enough and you want the trace viewer.
 ```
 Senior_QA_Engineer_Assessment.md   the written submission
 docs/assessment.html               the same document, formatted for reading and print
+docs/assessment.pdf                that document rendered to PDF
 playwright/                        web automation — page objects, fixtures, specs
 karate/                            API automation — feature files and JUnit runners
 testing_manual_report.pdf          the testing manual as a styled PDF, with real captured output

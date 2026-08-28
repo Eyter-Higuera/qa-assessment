@@ -16,17 +16,22 @@ import { chromium } from 'playwright';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 
-const [input, output] = process.argv.slice(2);
+const [input, output, footerLabel] = process.argv.slice(2);
 if (!input || !output) {
-  console.error('usage: node scripts/html-to-pdf.mjs <input.html> <output.pdf>');
+  console.error('usage: node scripts/html-to-pdf.mjs <input.html> <output.pdf> [footer]');
   process.exit(2);
 }
 
 const browser = await chromium.launch();
 try {
-  const page = await browser.newPage();
-  // networkidle so late-loading images and fonts are in place before printing.
+  // Light scheme explicitly: a document with a prefers-color-scheme block would
+  // otherwise render dark if the machine is set that way, and a dark PDF is
+  // never what anyone wanted from a print.
+  const page = await browser.newPage({ colorScheme: 'light' });
+  // networkidle so late-loading images and webfonts are in place before printing.
   await page.goto(pathToFileURL(resolve(input)).href, { waitUntil: 'networkidle' });
+  // Falls back to the document's own <title> so each document footers itself.
+  const label = footerLabel ?? (await page.title()) ?? '';
   await page.pdf({
     path: resolve(output),
     format: 'A4',
@@ -39,7 +44,7 @@ try {
       <div style="width:100%;font-size:8pt;color:#6b7280;padding:0 14mm;
                   font-family:-apple-system,Segoe UI,sans-serif;
                   display:flex;justify-content:space-between;">
-        <span>Book Store QA — testing manual</span>
+        <span>${label.replace(/[<>&]/g, '')}</span>
         <span class="pageNumber"></span>/<span class="totalPages"></span>
       </div>`,
   });

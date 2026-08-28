@@ -365,7 +365,8 @@ def render(html_text: str, keep: bool = False) -> None:
         if node is None:
             sys.exit("neither WeasyPrint nor node is available to render the PDF")
         proc = subprocess.run(
-            [node, "scripts/html-to-pdf.mjs", str(tmp), str(OUT_PDF)],
+            [node, "scripts/html-to-pdf.mjs", str(tmp), str(OUT_PDF),
+             "Book Store QA — testing manual"],
             cwd=ROOT / "playwright", capture_output=True, text=True)
         if proc.returncode != 0:
             detail = (proc.stderr or proc.stdout).strip()
